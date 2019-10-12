@@ -3,13 +3,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
-public class InstanciationClass {
+public class SaveLoader {
     private Map<String, Command> commands = new HashMap<>();
     private HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
     private HashMap<String, String> path = new HashMap<String, String>();
     private TreeSet<Long> default_channel = new TreeSet<Long>();
 
-    InstanciationClass(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, HashMap<String, String> path, TreeSet<Long> default_channel) {
+    SaveLoader(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, HashMap<String, String> path, TreeSet<Long> default_channel) {
         this.commands = commands;
         this.messages = messages;
         this.default_channel = default_channel;
@@ -138,13 +138,11 @@ public class InstanciationClass {
         String myLine = null;
 
         while ((myLine = bufRead.readLine()) != null) {
-            while ((myLine = bufRead.readLine()) != null) {
-                String[] array = myLine.split(":");
-                array[0] = array[0].replaceAll(" ", "");
-                array[1] = array[1].replaceAll(" \"", "");
-                array[1] = array[1].replaceAll("\"", "");
-                path.putIfAbsent(array[0], array[1]);
-            }
+            String[] array = myLine.split(":",2);
+            array[0] = array[0].replaceAll(" ", "");
+            array[1] = array[1].replaceAll(" \"", "");
+            array[1] = array[1].replaceAll("\"", "");
+            path.putIfAbsent(array[0], array[1]);
         }
     }
 }
