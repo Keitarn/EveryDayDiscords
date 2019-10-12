@@ -1,5 +1,4 @@
 import discord4j.core.DiscordClient;
-import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.util.Snowflake;
 
@@ -10,13 +9,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.sun.org.apache.xalan.internal.lib.ExsltDatetime.time;
+
 public class PostPhoto {
     private static int i = 0;
-    private Map<String, Command> commands = new HashMap<>();
+    private Map<String, Command> commands = new HashMap<String, Command>();
     private HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
     private HashMap<String, String> path = new HashMap<String, String>();
     private TreeSet<Long> default_channel = new TreeSet<Long>();
     private File[] fichiers;
+    private boolean runner = false;
 
     PostPhoto(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, HashMap<String, String> path, TreeSet<Long> default_channel) {
         this.commands = commands;
@@ -27,28 +29,14 @@ public class PostPhoto {
 
     }
 
-    private void addDefault_channel(DiscordClient client) {
-        client.getEventDispatcher().on(MessageCreateEvent.class).subscribe(event -> event.getMessage().getContent().ifPresent(c -> {
-            if (c.equals("!default_lamas")) {
-                long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-                    messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
-                }).subscribe();
-                default_channel.add(chanel);
+    public void lanceTache(DiscordClient client){
+            if(!runner){
+                runner = true;
+                taskPost(client);
             }
-        }));
-    }
-
-    private void removeDefault_channel(DiscordClient client) {
-        client.getEventDispatcher().on(MessageCreateEvent.class).subscribe(event -> event.getMessage().getContent().ifPresent(c -> {
-            if (c.equals("!undefault_lamas")) {
-                default_channel.remove(event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong());
-            }
-        }));
     }
 
     private File[] chargeFichier() {
-        System.out.println(path.get("pathSource"));
         File repertoire = new File(path.get("pathSource"));
         File[] listFichier = repertoire.listFiles(new FileFilter() {
             public boolean accept(File pathname) {
@@ -58,15 +46,12 @@ public class PostPhoto {
         return listFichier;
     }
 
-    private void taskPost(DiscordClient client, File[] fichiers) {
+    private void taskPost(DiscordClient client) {
 
         TimerTask tache = new TimerTask() {
             @Override
             public void run() {
-
-                for (long chanel : default_channel) {
-                    postPhoto(client, chanel, "Bonne photo journalière");
-                }
+                 postPhotoJourna(client,  "Bonne photo journalière");
             }
         };
         Date tomorrow = Date.from(LocalDate.now().plus(1, ChronoUnit.DAYS).atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -74,24 +59,55 @@ public class PostPhoto {
         timer.schedule(tache, tomorrow, TimeUnit.DAYS.toMillis(1));
     }
 
-    public void postPhoto(DiscordClient client, long idchannel, String message) {
+    public void postPhotoJourna(DiscordClient client, String message) {
+        if (!verif()) {
+            for (long chanel : default_channel) {
+                //TODO : ouvrir un fichier attention et l'affiché sans le deplacer
+                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
+                    messageCreateSpec.setContent("```diff\n- Une erreur s'est produite ! La photo journalière ne pourra pas être posté\n```");
+                }).subscribe();
+            }
+            return;
+        }
+        i++;
+        for (long chanel : default_channel) {
+            envoiePhoto(client,chanel,message);
+        }
+    }
+
+
+        public void postPhoto(DiscordClient client, long idchannel, String message) {
         if (idchannel == 0) {
             return;
         }
+        if(!verif()){
+            //TODO : ouvrir un fichier attention et l'affiché sans le deplacer
+            ((MessageChannel) client.getChannelById(Snowflake.of(idchannel)).block()).createMessage(messageCreateSpec -> {
+                messageCreateSpec.setContent("```diff\n- Erreur lors de l'envoie de la photo, le dossier d'image est vide, pensez a remettre de nouvelles images d'ici la prochaine demande ou image journalière\n```");
+            }).subscribe();
+        }
+            i++;
+            envoiePhoto(client,idchannel,message);
+
+    }
+
+    public boolean verif(){
         if (fichiers.length <= i) {
             fichiers = chargeFichier();
             if (fichiers.length == 0) {
-                //ouvrir un fichier attention et l'affiché sans le deplacer
-                ((MessageChannel) client.getChannelById(Snowflake.of(idchannel)).block()).createMessage(messageCreateSpec -> {
-                    messageCreateSpec.setContent("```diff\n- Erreur lors de l'envoie de la photo, le dossier d'image est vide, pensez a remettre de nouvelles images d'ici la prochaine demande ou image journalière\n```");
-                }).subscribe();
-                return;
+                return false;
             }
         }
+        return true;
+    }
+
+    public void envoiePhoto(DiscordClient client, long idchannel, String message){
         String name = fichiers[i].getName();
-        i++;
         File source = new File(path.get("pathSource") + name);
         File destination = new File(path.get("pathCopy") + name);
+        if(destination.exists()){
+            destination = new File(path.get("pathCopy") +"_"+time()+""+ name);
+        }
         source.renameTo(destination);
         try {
             FileInputStream test3 = new FileInputStream(destination);
@@ -110,6 +126,5 @@ public class PostPhoto {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-
     }
 }
