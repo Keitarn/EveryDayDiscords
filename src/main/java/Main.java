@@ -22,11 +22,11 @@ public class Main {
         loadSaver.LectureParam(false);
 
         PostPhoto postPhoto = new PostPhoto(commands, messages, path,default_channel);
-        Aide help = new Aide();
+        Aide help = new Aide(messages);
 
         DiscordClient client = new DiscordClientBuilder("NjMxNzg1MDM2NjE3NzQ0Mzg0.XZ77wg.H8w6DcwljnmSLgOIRqf2YFGh4mg").build();
 
-        commands.put("!save", event -> {
+        commands.put("!save", (event,arg) -> {
             try {
                 loadSaver.LectureParam(true);
                 long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
@@ -39,7 +39,7 @@ public class Main {
             return null;
         });
 
-        commands.put("!load", event -> {
+        commands.put("!load", (event,arg) -> {
             try {
                 loadSaver.LectureParam(false);
                 long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
@@ -52,7 +52,7 @@ public class Main {
             return null;
         });
 
-        commands.put("!ask_lamas", event -> {
+        commands.put("!ask_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             String autor = event.getMessage().getAuthor().get().getUsername();
             postPhoto.postPhoto(client, chanel, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
@@ -60,7 +60,7 @@ public class Main {
         });
 
 
-        commands.put("!default_lamas", event -> {
+        commands.put("!default_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
@@ -70,7 +70,7 @@ public class Main {
         });
 
 
-        commands.put("!undefault_lamas", event -> {
+        commands.put("!undefault_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été retiré des serveurs par défault s'il y était");
@@ -79,8 +79,8 @@ public class Main {
             return null;
         });
 
-        commands.put("!help", event -> {
-            help.helpFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong());
+        commands.put("!help", (event,arg) -> {
+            help.helpFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), arg);
             return null;
         });
 
@@ -95,30 +95,18 @@ public class Main {
     private static void dispatcher(DiscordClient client) {
         client.getEventDispatcher().on(MessageCreateEvent.class).flatMap(event -> Mono.justOrEmpty(event.getMessage().getContent())
                 .filter(content -> content.startsWith("!"))
-                .map(content -> content.split(" "))
+                .map(content -> content.split(" ", 2))
                 .filter(strs -> commands.containsKey(strs[0]))
-                .flatMap(argsCommand -> { commands.get(argsCommand[0]).execute(event);return Mono.empty().then();
+                .flatMap(argsCommand -> { if(argsCommand.length > 1) {
+                    commands.get(argsCommand[0]).execute(event,argsCommand[1]);
+                }else {
+                    commands.get(argsCommand[0]).execute(event, "");
+
+                }
+                    return Mono.empty().then();
                 }))
                 .subscribe();
     }
-
-//    private static void help(DiscordClient client) {
-//        client.getEventDispatcher().on(MessageCreateEvent.class).subscribe(event -> event.getMessage().getContent().ifPresent(c -> {
-//            if (c.equals("!help")) {
-//                String message = "";
-//                TreeSet<String> messagesCommande = messages.get("!help");
-//                for (String elem : messagesCommande) {
-//                    message = message + elem + "\n";
-//                }
-//                final String messEnvoie = message;
-//                long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-//                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-//                    messageCreateSpec.setContent(messEnvoie);
-//                }).subscribe();
-//            }
-//        }));
-//    }
-
 
 
 
