@@ -6,3 +6,4 @@ target/classes/SaveLoader.class
 *.class
 config/config.txt
 config/path.txt
+*.txt
