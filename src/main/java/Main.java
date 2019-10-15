@@ -12,19 +12,19 @@ import java.util.*;
 public class Main {
     private static TreeSet<Long> default_channel = new TreeSet<Long>();
     private static HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
-    private static HashMap<String, String> path = new HashMap<String, String>();
+    private static HashMap<String, String> config = new HashMap<String, String>();
     private static final Map<String, Command> commands = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
-        path.putIfAbsent("pathConfig","D:\\Documents\\GitHub\\Test\\config\\");
+        config.putIfAbsent("pathConfig",System.getProperty("user.dir") + "\\config");
 
-        SaveLoader loadSaver = new SaveLoader(commands, messages, path,default_channel);
-        loadSaver.LectureParam(false);
+        SaveLoader loadSaver = new SaveLoader(commands, messages, config,default_channel);
+        String clientDiscord = loadSaver.LectureParam(false);
 
-        PostPhoto postPhoto = new PostPhoto(commands, messages, path,default_channel);
+        PostPhoto postPhoto = new PostPhoto(commands, messages, config,default_channel);
         Aide help = new Aide(messages);
 
-        DiscordClient client = new DiscordClientBuilder("NjMxNzg1MDM2NjE3NzQ0Mzg0.XZ77wg.H8w6DcwljnmSLgOIRqf2YFGh4mg").build();
+        DiscordClient client = new DiscordClientBuilder(clientDiscord).build();
 
         commands.put("!save", (event,arg) -> {
             try {

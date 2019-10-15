@@ -24,10 +24,11 @@ public class SaveLoader {
         return messages;
     }
 
-    public void LectureParam(boolean save) throws IOException {
-        FileReader input = new FileReader(path.get("pathConfig") + "config.txt");
+    public String LectureParam(boolean save) throws IOException {
+        FileReader input = new FileReader(path.get("pathConfig") + "\\" + "config.txt");
         BufferedReader bufRead = new BufferedReader(input);
         String myLine = null;
+        String client = "";
 
         while ((myLine = bufRead.readLine()) != null) {
             String[] array = myLine.split(":");
@@ -53,12 +54,19 @@ public class SaveLoader {
                         recupPath(array[1]);
                     }
                     break;
+                case "Discords" :
+                    if (!save) {
+                        array[1] = array[1].replaceAll(" ", "");
+                        client = array[1];
+                    }
+                    break;
             }
         }
+        return client;
     }
 
     private void saveMessage(String fileName) {
-        final File fichier = new File(path.get("pathConfig") + fileName);
+        final File fichier = new File(path.get("pathConfig") + "\\" + fileName);
         try {
 
             fichier.createNewFile();
@@ -81,7 +89,7 @@ public class SaveLoader {
     }
 
     private void saveChanel(String fileName) {
-        final File fichier = new File(path.get("pathConfig") + fileName);
+        final File fichier = new File(path.get("pathConfig") + "\\" + fileName);
         try {
 
             fichier.createNewFile();
@@ -102,9 +110,9 @@ public class SaveLoader {
     }
 
     private void mapMessage(String fileName) throws IOException {
-        final File fichier = new File(path.get("pathConfig") + fileName);
+        final File fichier = new File(path.get("pathConfig")  + "\\" + fileName);
         fichier.createNewFile();
-        FileReader input = new FileReader(path.get("pathConfig") + fileName);
+        FileReader input = new FileReader(path.get("pathConfig")  + "\\" + fileName);
         BufferedReader bufRead = new BufferedReader(input);
         String myLine = null;
 
@@ -119,9 +127,9 @@ public class SaveLoader {
     }
 
     private void recupChanel(String fileName) throws IOException {
-        final File fichier = new File(path.get("pathConfig") + fileName);
+        final File fichier = new File(path.get("pathConfig")  + "\\" + fileName);
         fichier.createNewFile();
-        FileReader input = new FileReader(path.get("pathConfig") + fileName);
+        FileReader input = new FileReader(path.get("pathConfig")  + "\\" + fileName);
         BufferedReader bufRead = new BufferedReader(input);
         String myLine = null;
 
@@ -131,9 +139,9 @@ public class SaveLoader {
     }
 
     private void recupPath(String fileName) throws IOException {
-        final File fichier = new File(path.get("pathConfig") + fileName);
+        final File fichier = new File(path.get("pathConfig")  + "\\" + fileName);
         fichier.createNewFile();
-        FileReader input = new FileReader(path.get("pathConfig") + fileName);
+        FileReader input = new FileReader(path.get("pathConfig")  + "\\" + fileName);
         BufferedReader bufRead = new BufferedReader(input);
         String myLine = null;
 

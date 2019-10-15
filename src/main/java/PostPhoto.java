@@ -27,7 +27,6 @@ public class PostPhoto {
         this.path = path;
         this.fichiers = chargeFichier();
         testDossierEnvoie();
-
     }
 
     public void lanceTache(DiscordClient client){
