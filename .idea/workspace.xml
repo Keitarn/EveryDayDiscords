@@ -2,11 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="61a487f9-289e-462c-921a-bab8648e17ee" name="Default Changelist" comment="photo journa fonctionnelle et ask&#10;Help debut implementer&#10;Add class créer">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/config.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/path.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Aide.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Aide.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Command.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Command.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/PostPhoto$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/PostPhoto$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/PostPhoto$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/PostPhoto$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/PostPhoto.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/PostPhoto.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/SaveLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/SaveLoader.class" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -47,8 +50,11 @@
     </option>
   </component>
   <component name="ProjectId" id="1S0MfJNxykeqO355Lh4d12NRpgw" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
@@ -112,15 +118,64 @@
       <option name="project" value="LOCAL" />
       <updated>1570922981941</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Amélioration de l'image journa&#10;Correction du bug d'image déplacé introuvable">
+      <created>1571138627599</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1571138627599</updated>
+    </task>
+    <task id="LOCAL-00004" summary="config en chemin relatif&#10;plus de donnée sur le bot discords dans le code">
+      <created>1571141411609</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1571141411609</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
       <map>
+        <entry key="1">
+          <value>
+            <State>
+              <option name="SHOW_ONLY_AFFECTED_CHANGES" value="true" />
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="HEAD" />
+                      </list>
+                    </value>
+                  </entry>
+                  <entry key="roots">
+                    <value>
+                      <list>
+                        <option value="$PROJECT_DIR$" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
         <entry key="MAIN">
           <value>
             <State>
@@ -130,11 +185,19 @@
         </entry>
       </map>
     </option>
+    <option name="OPEN_TABS">
+      <set>
+        <option value="1" />
+      </set>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="refactor du projet en commande" />
     <MESSAGE value="postPhoto commande" />
     <MESSAGE value="photo journa fonctionnelle et ask&#10;Help debut implementer&#10;Add class créer" />
-    <option name="LAST_COMMIT_MESSAGE" value="photo journa fonctionnelle et ask&#10;Help debut implementer&#10;Add class créer" />
+    <MESSAGE value="Amélioration de l'image journa&#10;Correction du bug d'image déplacé introuvable" />
+    <MESSAGE value="config en chemin relatif&#10;plus de donnée sur le bot discords dans le code" />
+    <option name="LAST_COMMIT_MESSAGE" value="config en chemin relatif&#10;plus de donnée sur le bot discords dans le code" />
   </component>
 </project>

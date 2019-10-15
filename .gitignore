@@ -1,3 +1,8 @@
-
+.idea/workspace.xml
+.idea/workspace.xml
+target/classes/PostPhoto$1.class
+target/classes/PostPhoto$2.class
+target/classes/SaveLoader.class
+*.class
 config/config.txt
 config/path.txt
