@@ -1,0 +1,2 @@
+pathSource : "D:\Mes images\everyday_discords"
+pathCopy : "D:\Mes images\everyday_discords\photo_bot"

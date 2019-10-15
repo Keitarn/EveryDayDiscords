@@ -1,0 +1,4 @@
+Path : path.txt
+Serveur : serveurConfig.txt
+Message : message.txt
+Discords : NjMxNzg1MDM2NjE3NzQ0Mzg0.XZ77wg.H8w6DcwljnmSLgOIRqf2YFGh4mg
