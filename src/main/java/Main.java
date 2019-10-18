@@ -9,7 +9,6 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    private static TreeSet<Long> default_channel = new TreeSet<Long>();
     private static HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
     private static String config = System.getProperty("user.dir") + "\\config";
     private static final Map<String, Command> commands = new HashMap<>();
@@ -18,49 +17,25 @@ public class Main {
     private static Requetes requetes;
 
     public static void main(String[] args) throws IOException {
-        Loader loadSaver = new Loader(commands, messages, config,default_channel);
+        Loader loadSaver = new Loader(commands, messages, config);
         properties = loadSaver.LectureParam();
 
         connexion.connecter(TypeDatabase.MySQL , properties.getPath_BDD()+"/"+properties.getNom_BDD(), properties.getLogin_BDD() , properties.getMdp_BDD().toCharArray());
         requetes = new Requetes(connexion);
 
-        PostPhoto postPhoto = new PostPhoto(commands, messages, properties,default_channel, requetes);
+        PostPhoto postPhoto = new PostPhoto(commands, messages, properties, requetes);
         Aide help = new Aide(messages);
 
         DiscordClient client = new DiscordClientBuilder(properties.getToken_BOT()).build();
+        commands.put("!ask_lamas", (event,arg) -> {
+            long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            String autor = event.getMessage().getAuthor().get().getUsername();
+            long autorid = event.getMessage().getAuthor().get().getId().asLong();
 
-//        commands.put("!save", (event,arg) -> {
-//            try {
-//                loadSaver.LectureParam();
-//                long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-//                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-//                    messageCreateSpec.setContent("Save éffectué");
-//                }).subscribe();
-//            } catch (IOException e) {
-//                System.out.println("erreur lors de la sauvegarde");
-//            }
-//            return null;
-//        });
-
-        commands.put("!load", (event,arg) -> {
-            try {
-                loadSaver.LectureParam();
-                long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-                    messageCreateSpec.setContent("Load éffectué");
-                }).subscribe();
-            } catch (IOException e) {
-                System.out.println("erreur lors du chargement");
-            }
+            long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
+            postPhoto.postPhoto(client, idChanel, idGuild, autorid, autor, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
             return null;
         });
-
-//        commands.put("!ask_lamas", (event,arg) -> {
-//            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-//            String autor = event.getMessage().getAuthor().get().getUsername();
-//            postPhoto.postPhoto(client, chanel, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
-//            return null;
-//        });
 
 
         commands.put("!default_lamas", (event,arg) -> {
@@ -68,7 +43,8 @@ public class Main {
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
             }).subscribe();
-            default_channel.add(chanel);
+            long guild = event.getGuild().map(gu -> gu.getId()).block().asLong();
+            requetes.addChanelDefault(chanel,guild);
             return null;
         });
 
@@ -78,7 +54,8 @@ public class Main {
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été retiré des serveurs par défault s'il y était");
             }).subscribe();;
-            default_channel.remove(chanel);
+            long guild = event.getGuild().map(gu -> gu.getId()).block().asLong();
+            requetes.removeChanelDefault(chanel,guild);
             return null;
         });
 
@@ -89,9 +66,8 @@ public class Main {
 
 
 
-
 //        add(client);
-//        postPhoto.lanceTache(client);
+        postPhoto.lanceTache(client);
         dispatcher(client);
         client.login().block();
     }

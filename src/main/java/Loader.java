@@ -6,13 +6,11 @@ import java.util.TreeSet;
 public class Loader {
     private Map<String, Command> commands = new HashMap<>();
     private HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
-    private TreeSet<Long> default_channel = new TreeSet<Long>();
     String path;
 
-    Loader(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, String path, TreeSet<Long> default_channel) {
+    Loader(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, String path) {
         this.commands = commands;
         this.messages = messages;
-        this.default_channel = default_channel;
         this.path = path;
     }
 
@@ -38,34 +36,8 @@ public class Loader {
 
         while ((myLine = bufRead.readLine()) != null) {
             String[] array = myLine.split(":" , 2);
-            // check to make sure you have valid data
             array[0] = array[0].replaceAll(" ", "");
-
             switch (array[0]) {
-//                case "Message":
-//                    if (!save) {
-//                        mapMessage(array[1]);
-//                    }
-//                    break;
-//                case "Serveur":
-//                    if (save) {
-//                        saveChanel(array[1]);
-//                    } else {
-//                        recupChanel(array[1]);
-//                    }
-//                    break;
-//                case "Path":
-//                    if (!save) {
-//                        recupPath(array[1]);
-//                    }
-//                    break;
-                case "Path_Copy" :
-                    System.out.println(array[1]);
-                    array[1] = array[1].replace(" \"", "");
-                    array[1] = array[1].replace("\"", "");
-                    path_Copy = array[1];
-                    System.out.println(path_Copy);
-                    break;
                 case "Path_Image" :
                     array[1] = array[1].replace(" \"", "");
                     array[1] = array[1].replace("\"", "");
