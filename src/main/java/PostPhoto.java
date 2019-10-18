@@ -14,19 +14,19 @@ public class PostPhoto {
     private static int i = 0;
     private Map<String, Command> commands = new HashMap<String, Command>();
     private HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
-    private HashMap<String, String> path = new HashMap<String, String>();
+    private Properties properties;
     private TreeSet<Long> default_channel = new TreeSet<Long>();
-    private File[] fichiers;
+    private Requetes requetes;
     private boolean runner = false;
     private boolean photo = true;
 
-    PostPhoto(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, HashMap<String, String> path, TreeSet<Long> default_channel) {
+    PostPhoto(Map<String, Command> commands, HashMap<String, TreeSet<String>> messages, Properties properties, TreeSet<Long> default_channel, Requetes requetes) {
         this.commands = commands;
         this.messages = messages;
         this.default_channel = default_channel;
-        this.path = path;
-        this.fichiers = chargeFichier();
-        testDossierEnvoie();
+        this.properties = properties;
+        this.requetes = requetes;
+        chargeFichier();
     }
 
     public void lanceTache(DiscordClient client){
@@ -36,8 +36,8 @@ public class PostPhoto {
             }
     }
 
-    private File[] chargeFichier() {
-        File repertoire = new File(path.get("pathSource"));
+    private void chargeFichier() {
+        File repertoire = new File(properties.getPathImage());
         if(!repertoire.exists()){
             photo = false;
         }
@@ -46,7 +46,9 @@ public class PostPhoto {
                 return pathname.isFile();
             }
         });
-        return listFichier;
+        for (int i =0; i < listFichier.length; i++){
+            requetes.addPhoto(listFichier[i].getName());
+        }
     }
 
     private void taskPost(DiscordClient client) {
@@ -63,21 +65,18 @@ public class PostPhoto {
     }
 
     public void postPhotoJourna(DiscordClient client, String message) {
-        if (!verif()) {
+        // a recup dans la base
+        String name ="";
+        if (name == "") {
             for (long chanel : default_channel) {
-                //TODO : ouvrir un fichier attention et l'affiché sans le deplacer
                 ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                     messageCreateSpec.setContent("```diff\n- Une erreur s'est produite ! La photo journalière ne pourra pas être posté\n```");
                 }).subscribe();
             }
             return;
         }
-        String name ="";
 
-        if(photo) {
-            name = deplace();
-            i++;
-        }
+
         for (long chanel : default_channel) {
             if(photo){
                 envoiePhoto(client,chanel,message, name);
@@ -105,60 +104,24 @@ public class PostPhoto {
             return;
         }
 
-        if(!verif()){
+            //a recup dans la base
+            String name = "";
+
+        if(name == ""){
             //TODO : ouvrir un fichier attention et l'affiché sans le deplacer
             ((MessageChannel) client.getChannelById(Snowflake.of(idchannel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("```diff\n- Erreur lors de l'envoie de la photo, le dossier d'image est vide, pensez a remettre de nouvelles images d'ici la prochaine demande ou image journalière\n```");
             }).subscribe();
         }
-            String name = deplace();
+
             envoiePhoto(client,idchannel,message, name);
             i++;
     }
 
-    public boolean verif(){
-        if (fichiers.length <= i) {
-            fichiers = chargeFichier();
-            if (fichiers.length == 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public void testDossierEnvoie(){
-        File testDestination = new File(path.get("pathCopy"));
-        if(!testDestination.exists()){
-            boolean creation  = testDestination.mkdirs();
-            if(!creation){
-                Date renommageDossier = new Date();
-
-                path.replace("pathCopy",path.get("pathCopy"),path.get("pathSource")+"_"+renommageDossier.getTime());
-                testDestination = new File(path.get("pathCopy"));
-                testDestination.mkdir();
-            }
-        }
-
-    }
-
-    public String deplace(){
-        String name = fichiers[i].getName();
-        File source = new File(path.get("pathSource") + '\\' + name);
-        File destination = new File(path.get("pathCopy") + '\\' + name);
-
-        if(destination.exists()){
-            Date renommage = new Date();
-            name = "_"+renommage.getTime()+"_ici_"+name;
-            destination = new File(path.get("pathCopy") + '\\' + name);
-        }
-        source.renameTo(destination);
-        return name;
-    }
-
     public void envoiePhoto(DiscordClient client, long idchannel, String message, String name ){
-        File destination = new File(path.get("pathCopy") + '\\' + name);
+        File source = new File(properties.getPathImage() + '\\' + name);
         try {
-            FileInputStream test3 = new FileInputStream(destination);
+            FileInputStream test3 = new FileInputStream(source);
             ((MessageChannel) client.getChannelById(Snowflake.of(idchannel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent(message);
                 messageCreateSpec.addFile(name, test3);

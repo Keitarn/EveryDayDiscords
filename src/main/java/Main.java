@@ -1,4 +1,3 @@
-import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -12,36 +11,40 @@ import java.util.*;
 public class Main {
     private static TreeSet<Long> default_channel = new TreeSet<Long>();
     private static HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
-    private static HashMap<String, String> config = new HashMap<String, String>();
+    private static String config = System.getProperty("user.dir") + "\\config";
     private static final Map<String, Command> commands = new HashMap<>();
+    private static Properties properties;
+    private static Connexion connexion = new Connexion();
+    private static Requetes requetes;
 
     public static void main(String[] args) throws IOException {
-        config.putIfAbsent("pathConfig",System.getProperty("user.dir") + "\\config");
+        Loader loadSaver = new Loader(commands, messages, config,default_channel);
+        properties = loadSaver.LectureParam();
 
-        SaveLoader loadSaver = new SaveLoader(commands, messages, config,default_channel);
-        String clientDiscord = loadSaver.LectureParam(false);
+        connexion.connecter(TypeDatabase.MySQL , properties.getPath_BDD()+"/"+properties.getNom_BDD(), properties.getLogin_BDD() , properties.getMdp_BDD().toCharArray());
+        requetes = new Requetes(connexion);
 
-        PostPhoto postPhoto = new PostPhoto(commands, messages, config,default_channel);
+        PostPhoto postPhoto = new PostPhoto(commands, messages, properties,default_channel, requetes);
         Aide help = new Aide(messages);
 
-        DiscordClient client = new DiscordClientBuilder(clientDiscord).build();
+        DiscordClient client = new DiscordClientBuilder(properties.getToken_BOT()).build();
 
-        commands.put("!save", (event,arg) -> {
-            try {
-                loadSaver.LectureParam(true);
-                long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-                    messageCreateSpec.setContent("Save éffectué");
-                }).subscribe();
-            } catch (IOException e) {
-                System.out.println("erreur lors de la sauvegarde");
-            }
-            return null;
-        });
+//        commands.put("!save", (event,arg) -> {
+//            try {
+//                loadSaver.LectureParam();
+//                long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+//                ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
+//                    messageCreateSpec.setContent("Save éffectué");
+//                }).subscribe();
+//            } catch (IOException e) {
+//                System.out.println("erreur lors de la sauvegarde");
+//            }
+//            return null;
+//        });
 
         commands.put("!load", (event,arg) -> {
             try {
-                loadSaver.LectureParam(false);
+                loadSaver.LectureParam();
                 long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
                 ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                     messageCreateSpec.setContent("Load éffectué");
@@ -52,12 +55,12 @@ public class Main {
             return null;
         });
 
-        commands.put("!ask_lamas", (event,arg) -> {
-            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            String autor = event.getMessage().getAuthor().get().getUsername();
-            postPhoto.postPhoto(client, chanel, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
-            return null;
-        });
+//        commands.put("!ask_lamas", (event,arg) -> {
+//            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+//            String autor = event.getMessage().getAuthor().get().getUsername();
+//            postPhoto.postPhoto(client, chanel, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
+//            return null;
+//        });
 
 
         commands.put("!default_lamas", (event,arg) -> {
@@ -79,15 +82,16 @@ public class Main {
             return null;
         });
 
-        commands.put("!help", (event,arg) -> {
-            help.helpFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), arg);
-            return null;
-        });
+//        commands.put("!help", (event,arg) -> {
+//            help.helpFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), arg);
+//            return null;
+//        });
 
 
-        add(client);
-//        help(client);
-        postPhoto.lanceTache(client);
+
+
+//        add(client);
+//        postPhoto.lanceTache(client);
         dispatcher(client);
         client.login().block();
     }
