@@ -25,8 +25,8 @@ public class Main {
 
         PostPhoto postPhoto = new PostPhoto(commands, messages, properties, requetes);
         Aide help = new Aide(messages);
-
         DiscordClient client = new DiscordClientBuilder(properties.getToken_BOT()).build();
+
         commands.put("!ask_lamas", (event,arg) -> {
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             String autor = event.getMessage().getAuthor().get().getUsername();
