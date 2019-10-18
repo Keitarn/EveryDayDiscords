@@ -7,3 +7,10 @@ target/classes/SaveLoader.class
 config/config.txt
 config/path.txt
 *.txt
+*.xml
+*.xml
+*.xml
+config/config.txt
+EveryDayDiscords.iml
+modelisation BDD
+*.class

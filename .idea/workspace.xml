@@ -2,14 +2,21 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="61a487f9-289e-462c-921a-bab8648e17ee" name="Default Changelist" comment="photo journa fonctionnelle et ask&#10;Help debut implementer&#10;Add class créer">
-      <change afterPath="$PROJECT_DIR$/config/config.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/path.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__mysql_mysql_connector_java_5_1_48.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_logging_log4j_log4j_api_2_12_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_logging_log4j_log4j_core_2_12_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/Maven__org_xerial_sqlite_jdbc_3_28_0.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/modelisation BDD" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/EveryDayDiscords.iml" beforeDir="false" afterPath="$PROJECT_DIR$/EveryDayDiscords.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/config.txt" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/path.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/PostPhoto$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/PostPhoto$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/PostPhoto$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/PostPhoto$2.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/PostPhoto.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/PostPhoto.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/SaveLoader.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/SaveLoader.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/SaveLoader.class" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -58,6 +65,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
+    <property name="extract.method.default.visibility" value="private" />
     <property name="last_opened_file_path" value="D:/Program Files/Git/bin/git.exe" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
@@ -132,7 +140,21 @@
       <option name="project" value="LOCAL" />
       <updated>1571141411609</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Transition vers base de donnée">
+      <created>1571396502250</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1571396502250</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Journa avec enregistrement en base + demande de photo avec ask + temps entre deux demandes">
+      <created>1571440914009</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1571440914009</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -198,6 +220,8 @@
     <MESSAGE value="photo journa fonctionnelle et ask&#10;Help debut implementer&#10;Add class créer" />
     <MESSAGE value="Amélioration de l'image journa&#10;Correction du bug d'image déplacé introuvable" />
     <MESSAGE value="config en chemin relatif&#10;plus de donnée sur le bot discords dans le code" />
-    <option name="LAST_COMMIT_MESSAGE" value="config en chemin relatif&#10;plus de donnée sur le bot discords dans le code" />
+    <MESSAGE value="Transition vers base de donnée" />
+    <MESSAGE value="Journa avec enregistrement en base + demande de photo avec ask + temps entre deux demandes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Journa avec enregistrement en base + demande de photo avec ask + temps entre deux demandes" />
   </component>
 </project>
