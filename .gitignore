@@ -14,3 +14,4 @@ config/config.txt
 EveryDayDiscords.iml
 modelisation BDD
 *.class
+*.xml
