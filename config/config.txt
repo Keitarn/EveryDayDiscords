@@ -1,6 +1,6 @@
-Path_Image: "D:\Mes images\everyday_discords"
-BDD_path: localhost:3306
-BDD_nom: keitarn
-BDD_login: keitarn
-BDD_mdp: test
-Discord : NjMxNzg1MDM2NjE3NzQ0Mzg0.XapMVA.FlKowz6JcTVNKe4LEkDHlUL1xHU
+Path_Image: ""
+BDD_path: 
+BDD_nom: 
+BDD_login: 
+BDD_mdp: 
+Discord : 
