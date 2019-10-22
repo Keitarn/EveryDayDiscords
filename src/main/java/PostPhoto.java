@@ -26,7 +26,19 @@ public class PostPhoto {
         this.messages = messages;
         this.properties = properties;
         this.requetes = requetes;
-        chargeFichier();
+        taskChargeFichier();
+    }
+
+    private void taskChargeFichier() {
+        TimerTask tache = new TimerTask() {
+            @Override
+            public void run() {
+                chargeFichier();
+            }
+        };
+        Date monday_4h = getNextMonday_4h();
+        Timer timer = new Timer();
+        timer.schedule(tache, monday_4h, TimeUnit.DAYS.toMillis(7));
     }
 
     public void lanceTache(DiscordClient client){
@@ -129,12 +141,16 @@ public class PostPhoto {
     }
 
     public void postPhoto(DiscordClient client, long idchannel, long idGuild, long autorid,String autorName, String message) {
+
+        requetes.addUserGuild(idGuild,autorid);
         if(!photo){
             ((MessageChannel) client.getChannelById(Snowflake.of(idchannel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("```diff\n- La commande n'a pu être éffectué, la commande d'envoie de photo est actuellement désactivé\n```");
             }).subscribe();
             return;
         }
+
+
 
         long time = 11000;
         String datePost;
@@ -151,7 +167,6 @@ public class PostPhoto {
             }
         } catch (SQLException e) {
         }
-        System.out.println(time);
         if(time < 10800){
             long timeRestant = (10800-time);
             long heure = timeRestant / 3600;
@@ -184,6 +199,7 @@ public class PostPhoto {
             envoiePhoto(client,idchannel,message, name);
             requetes.insertCoupleImageGuild(""+idGuild,name);
             requetes.insertReuqeteUser("!ask_lamas",autorid);
+            requetes.incrementeRequete(""+idGuild,""+autorid,"!ask_lamas");
 
     }
 
@@ -206,5 +222,16 @@ public class PostPhoto {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private Date getNextMonday_4h() {
+        Date date = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().plus(4, ChronoUnit.HOURS));
+        Calendar maDate = new java.util.GregorianCalendar();
+        maDate.setTime(date);
+        // On se positionne sur le Lundi de la semaine courante :
+        maDate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        // Puis on ajoute 7 jours :
+        maDate.add(Calendar.DATE, 7);
+        return maDate.getTime();
     }
 }

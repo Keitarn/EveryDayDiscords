@@ -144,6 +144,7 @@ public class Connexion {
         Properties properties = (null != config) ? config.toProperties() : new Properties();
         properties.setProperty("user", System.getProperty("user.name"));
         properties.setProperty("password", "");
+        properties.setProperty("autoReconnect","true");
         setConnection(properties);
         
         try {

@@ -86,15 +86,32 @@ public class Requetes {
         String requete = "INSERT IGNORE INTO user VALUES (?)";
         connexion.executerPreparedUpdate(requete,""+autorid);
 //       TexteConstantesConnexion.DATE +
-        String requete2 = "INSERT INTO requeteuser(dateRequete,TypeRequete,idUser) VALUES (?,?,?) ON DUPLICATE KEY UPDATE dateRequete = ?";
+        String requete2 = "INSERT INTO requete(dateRequete,TypeRequete,idUser) VALUES (?,?,?) ON DUPLICATE KEY UPDATE dateRequete = ?";
 
         connexion.executerPreparedUpdate(requete2,""+date.getTime() ,commande,""+autorid,""+date.getTime());
 
     }
 
     public ResultSet getTimeReqequete(String commande, long authorID) {
-        String requete = "SELECT dateRequete FROM requeteuser WHERE TypeRequete = ? AND idUser = ?";
+        String requete = "SELECT dateRequete FROM requete WHERE TypeRequete = ? AND idUser = ?";
 
         return connexion.executerPreparedSelect(requete, commande, ""+authorID);
+    }
+
+    public void addUserGuild(long idGuild, long autorid) {
+        String requete = "INSERT IGNORE INTO userGuild(idUser,idGuild) VALUES (?,?)";
+        connexion.executerPreparedUpdate(requete,""+autorid,""+idGuild);
+    }
+
+    public void incrementeRequete(String idGuild,String autorid,String commande) {
+        String requete = "INSERT INTO requeteUserServer(idUser,idGuild,TypeRequete,nombreAppel) VALUES (?,?,?,1) ON DUPLICATE KEY UPDATE nombreAppel = nombreAppel+1 ";
+        connexion.executerPreparedUpdate(requete,""+autorid,""+idGuild,commande);
+
+    }
+
+    public ResultSet recupClassement(String idGuild, String commande) {
+        String requete = "SELECT idUser,nombreAppel FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? ORDER BY nombreAppel DESC";
+        return connexion.executerPreparedSelect(requete,idGuild, commande);
+
     }
 }

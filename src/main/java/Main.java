@@ -15,7 +15,7 @@ public class Main {
     private static Properties properties;
     private static Connexion connexion = new Connexion();
     private static Requetes requetes;
-
+    private static DiscordClient client;
     public static void main(String[] args) throws IOException {
         Loader loadSaver = new Loader(commands, messages, config);
         properties = loadSaver.LectureParam();
@@ -24,15 +24,21 @@ public class Main {
         requetes = new Requetes(connexion);
 
         PostPhoto postPhoto = new PostPhoto(commands, messages, properties, requetes);
-        Aide help = new Aide(messages);
-        DiscordClient client = new DiscordClientBuilder(properties.getToken_BOT()).build();
+        Aide help = new Aide(requetes);
+        Information info = new Information(requetes);
+        client = new DiscordClientBuilder(properties.getToken_BOT()).build();
 
         commands.put("!ask_lamas", (event,arg) -> {
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             String autor = event.getMessage().getAuthor().get().getUsername();
             long autorid = event.getMessage().getAuthor().get().getId().asLong();
+            if(!event.getMessage().getGuild().hasElement().block()) {
+                messagesPrivée(idChanel);
+                return null;
+            }
 
             long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
+
             postPhoto.postPhoto(client, idChanel, idGuild, autorid, autor, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
             return null;
         });
@@ -40,6 +46,11 @@ public class Main {
 
         commands.put("!default_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+
+            if(!event.getMessage().getGuild().hasElement().block()) {
+                messagesPrivée(chanel);
+                return null;
+            }
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
             }).subscribe();
@@ -51,6 +62,12 @@ public class Main {
 
         commands.put("!undefault_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+
+            if(!event.getMessage().getGuild().hasElement().block()) {
+                messagesPrivée(chanel);
+                return null;
+            }
+
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été retiré des serveurs par défault s'il y était");
             }).subscribe();;
@@ -64,12 +81,22 @@ public class Main {
 //            return null;
 //        });
 
+        commands.put("!classement_ask", (event,arg) -> {
+            info.classementAskFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong());
+            return null;
+        });
 
 
-//        add(client);
         postPhoto.lanceTache(client);
         dispatcher(client);
         client.login().block();
+    }
+
+    private static void messagesPrivée(long idChanel) {
+
+        ((MessageChannel) client.getChannelById(Snowflake.of(idChanel)).block()).createMessage(messageCreateSpec -> {
+            messageCreateSpec.setContent("Il est interdit de faire des demandes au bot, si tu continues tu seras blacklisté");
+        }).subscribe();;
     }
 
     private static void dispatcher(DiscordClient client) {
@@ -105,10 +132,6 @@ public class Main {
             }
         }));
     }
-
-
-
-
 }
 
 

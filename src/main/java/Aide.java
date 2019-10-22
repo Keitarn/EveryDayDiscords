@@ -2,16 +2,16 @@ import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.util.Snowflake;
 
-import java.util.HashMap;
 import java.util.TreeSet;
 
 
 public class Aide {
 
-    private HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
+    private Requetes requetes;
 
-    public Aide(HashMap<String, TreeSet<String>> messages) {
-        this.messages = messages;
+    public Aide(Requetes requetes) {
+        this.requetes = requetes;
+
     }
 
     public void helpFunction(DiscordClient client, Long chanel, String param){
@@ -21,11 +21,12 @@ public class Aide {
         }else{
             String[] split = param.split(" ");
             if(split.length > 1){
-                TreeSet<String> reponse = messages.get("!help_error");
+                //TODO : requete recup message pour !helpError
+                //TreeSet<String> reponse = messages.get("!help_error");
                 String message = "";
-                for (String elem : reponse) {
-                    message = message + elem + "\n";
-                }
+//                for (String elem : reponse) {
+//                    message = message + elem + "\n";
+//                }
                final String rep = message;
                 ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                     messageCreateSpec.setContent(rep);
