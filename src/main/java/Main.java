@@ -32,10 +32,7 @@ public class Main {
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             String autor = event.getMessage().getAuthor().get().getUsername();
             long autorid = event.getMessage().getAuthor().get().getId().asLong();
-            if(!event.getMessage().getGuild().hasElement().block()) {
-                messagesPrivée(idChanel);
-                return null;
-            }
+            if (MessagePrivée(event, idChanel)) return null;
 
             long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
 
@@ -47,10 +44,7 @@ public class Main {
         commands.put("!default_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
 
-            if(!event.getMessage().getGuild().hasElement().block()) {
-                messagesPrivée(chanel);
-                return null;
-            }
+            if (MessagePrivée(event, chanel)) return null;
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
             }).subscribe();
@@ -63,10 +57,7 @@ public class Main {
         commands.put("!undefault_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
 
-            if(!event.getMessage().getGuild().hasElement().block()) {
-                messagesPrivée(chanel);
-                return null;
-            }
+            if (MessagePrivée(event, chanel)) return null;
 
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été retiré des serveurs par défault s'il y était");
@@ -82,6 +73,8 @@ public class Main {
 //        });
 
         commands.put("!classement_ask", (event,arg) -> {
+            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            if (MessagePrivée(event, chanel)) return null;
             info.classementAskFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong());
             return null;
         });
@@ -90,6 +83,14 @@ public class Main {
         postPhoto.lanceTache(client);
         dispatcher(client);
         client.login().block();
+    }
+
+    private static boolean MessagePrivée(MessageCreateEvent event, long idChanel) {
+        if (!event.getMessage().getGuild().hasElement().block()) {
+            messagesPrivée(idChanel);
+            return true;
+        }
+        return false;
     }
 
     private static void messagesPrivée(long idChanel) {
