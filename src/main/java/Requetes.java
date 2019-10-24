@@ -36,7 +36,7 @@ public class Requetes {
 
             }
         }
-        requete+= ")) Limit 1";
+        requete+= ")) ORDER BY RAND () Limit 1";
         return connexion.executerPreparedSelect(requete,idGuildTableau);
     }
 

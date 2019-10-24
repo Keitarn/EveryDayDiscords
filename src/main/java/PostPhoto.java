@@ -167,7 +167,7 @@ public class PostPhoto {
             }
         } catch (SQLException e) {
         }
-        if(time < 10800){
+        if(time < 10800 & idGuild != 631786237753032715L){
             long timeRestant = (10800-time);
             long heure = timeRestant / 3600;
             long minute = (timeRestant % 3600) / 60 ;
