@@ -7,3 +7,5 @@ target/classes/SaveLoader.class
 config/config.txt
 config/path.txt
 *.txt
+.idea/misc.xml
+.idea/workspace.xml
