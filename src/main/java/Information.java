@@ -11,7 +11,7 @@ public class Information {
         this.requetes = requetes;
     }
 
-    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild) {
+    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild, String param) {
         ResultSet res = requetes.recupClassement(""+idGuild, "!ask_lamas");
         int i = 1;
         String message = "le classement est :\n";

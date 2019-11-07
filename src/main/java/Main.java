@@ -53,6 +53,16 @@ public class Main {
             return null;
         });
 
+        commands.put("!load_lamas", (event,arg) -> {
+            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+
+            if (MessagePrivée(event, chanel)) return null;
+            postPhoto.chargeFichier();
+            ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
+                messageCreateSpec.setContent("Load effectué");
+            }).subscribe();
+            return null;
+        });
 
         commands.put("!undefault_lamas", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
@@ -75,7 +85,7 @@ public class Main {
         commands.put("!classement_ask", (event,arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             if (MessagePrivée(event, chanel)) return null;
-            info.classementAskFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong());
+            info.classementAskFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong(),arg);
             return null;
         });
 

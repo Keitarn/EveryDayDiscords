@@ -51,7 +51,7 @@ public class PostPhoto {
     public void load(DiscordClient client){
 
     }
-    private void chargeFichier() {
+    public void chargeFichier() {
         File repertoire = new File(properties.getPathImage());
         if(!repertoire.exists()){
             photo = false;
