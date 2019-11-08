@@ -1,4 +1,5 @@
 import discord4j.core.DiscordClient;
+import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.util.Snowflake;
 import java.sql.ResultSet;
@@ -6,12 +7,13 @@ import java.sql.SQLException;
 
 public class Information {
     private Requetes requetes;
-
-    public Information(Requetes requetes) {
+    private Aide help;
+    public Information(Requetes requetes, Aide help) {
         this.requetes = requetes;
+        this.help = help;
     }
 
-    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild, String param) {
+    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild) {
         ResultSet res = requetes.recupClassement(""+idGuild, "!ask_lamas");
         int i = 1;
         String message = "le classement est :\n";
@@ -31,5 +33,16 @@ public class Information {
         ((MessageChannel) client.getChannelById(Snowflake.of(idChanel)).block()).createMessage(messageCreateSpec -> {
             messageCreateSpec.setContent(MessageFinal);
         }).subscribe();
+    }
+
+    public void classement(DiscordClient client, MessageCreateEvent event, String arg) {
+        String[] argu = arg.split(" ");
+        if(argu[0].equals("")){
+            help.helpFunction(client,event.getMessage().getChannel().block().getId().asLong(),"classemenent_lamas");
+        } else if(argu[0].equals("photo")){
+            long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
+            classementAskFunction(client, idChanel, idGuild);
+        }
     }
 }

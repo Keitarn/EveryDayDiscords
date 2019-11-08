@@ -114,4 +114,9 @@ public class Requetes {
         return connexion.executerPreparedSelect(requete,idGuild, commande);
 
     }
+
+    public ResultSet getGuildChannel() {
+        String requete = "SELECT idGuild,idChanel FROM chanel";
+        return connexion.executerPreparedSelect(requete);
+    }
 }

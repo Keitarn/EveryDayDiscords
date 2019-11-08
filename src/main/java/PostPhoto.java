@@ -126,8 +126,8 @@ public class PostPhoto {
 
 
         for (int j = 0; j < idChannelTableau.length; j++) {
-            if(photo){
-                envoiePhoto(client,Long.parseLong(idChannelTableau[j]),message, name);
+            if (photo) {
+                envoiePhoto(client, Long.parseLong(idChannelTableau[j]), message, name);
             } else {
                 ((MessageChannel) client.getChannelById(Snowflake.of(idChannelTableau[j])).block()).createMessage(messageCreateSpec -> {
                     messageCreateSpec.setContent("```diff\n- La photo journalière ne peut être envoyé car elle a été désactivé pour problème technique\n```");
