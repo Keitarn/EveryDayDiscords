@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="NaraBotLogConfig">
+    <Appenders>
+        <Routing name="Routing">
+            <Routes pattern="$${ctx:guild}">
+                <Route>
+                    <RollingFile
+                        name="log-${ctx:guild}"
+                        filePattern="logs/${ctx:guild}/%d{yyyy-MM-dd}.log"
+                        ignoreExceptions="false">
+                        <PatternLayout>
+                            <Pattern>%d{HH:mm:ss} %m%n</Pattern>
+                        </PatternLayout>
+                        <Policies>
+                            <TimeBasedTriggeringPolicy interval="1"/>
+                        </Policies>
+                    </RollingFile>
+                </Route>
+            </Routes>
+        </Routing>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="Routing"/>
+        </Root>
+    </Loggers>
+</Configuration>
