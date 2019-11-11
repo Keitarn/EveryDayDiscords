@@ -4,6 +4,8 @@ import discord4j.core.event.domain.channel.TextChannelDeleteEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Channel;
 import discord4j.core.object.entity.MessageChannel;
+import discord4j.core.object.util.Permission;
+import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
 import reactor.core.publisher.Mono;
 
@@ -37,6 +39,9 @@ public class Main {
         client = new DiscordClientBuilder(properties.getToken_BOT()).build();
 
         commands.put("!ask_lamas", (event, arg) -> {
+            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            if (MessagePrivée(event, chanel)) return null;
+            if (verifPermissionSend(client, event)) return null;
             ask_lamas(client, event, arg);
             return null;
         });
@@ -46,6 +51,8 @@ public class Main {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
 
             if (MessagePrivée(event, chanel)) return null;
+            if (verifPermissionSend(client, event)) return null;
+
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
             }).subscribe();
@@ -58,6 +65,7 @@ public class Main {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
 
             if (MessagePrivée(event, chanel)) return null;
+            if (verifPermissionSend(client, event)) return null;
             postPhoto.chargeFichier();
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Load effectué");
@@ -69,7 +77,7 @@ public class Main {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
 
             if (MessagePrivée(event, chanel)) return null;
-
+            if (verifPermissionSend(client, event)) return null;
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été retiré des serveurs par défault s'il y était");
             }).subscribe();
@@ -87,6 +95,7 @@ public class Main {
         commands.put("!classement_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             if (MessagePrivée(event, chanel)) return null;
+            if (verifPermissionSend(client, event)) return null;
             info.classement(client, event, arg);
             return null;
         });
@@ -105,7 +114,6 @@ public class Main {
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             String autor = event.getMessage().getAuthor().get().getUsername();
             long autorid = event.getMessage().getAuthor().get().getId().asLong();
-            if (MessagePrivée(event, idChanel)) return;
 
             long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
             postPhoto.postPhoto(client, idChanel, idGuild, autorid, autor, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
@@ -113,15 +121,14 @@ public class Main {
     }
 
     private static void verifChannelDelete() {
-        ResultSet res = requetes.getGuildChannel();
+        final ResultSet res = requetes.getGuildChannel();
         try {
             while (res.next()) {
                 long chanel = Long.parseLong(res.getString("idChanel"));
-                Mono<Channel> test = client.getChannelById(Snowflake.of(chanel));
-                if (!test.hasElement().block()) {
-                    long guild = Long.parseLong(res.getString("idGuild"));
+                long guild = Long.parseLong(res.getString("idGuild"));
+                client.getChannelById(Snowflake.of(chanel)).doOnError(ch -> {
                     requetes.removeChanelDefault(chanel, guild);
-                }
+                }).subscribe();
             }
         } catch (SQLException e) {
             return;
@@ -162,27 +169,19 @@ public class Main {
                         commands.get(argsCommand[0]).execute(event, argsCommand[1]);
                     } else {
                         commands.get(argsCommand[0]).execute(event, "");
-
                     }
                     return Mono.empty().then();
                 })).subscribe();
     }
 
-
-    private static void add(DiscordClient client) {
-        client.getEventDispatcher().on(MessageCreateEvent.class).subscribe(event -> event.getMessage().getContent().ifPresent(c -> {
-            String[] res = c.split(" ", 2);
-            if (res[0].equals("!add")) {
-                if (res.length > 1) {
-                    String[] res2 = res[1].split(" ", 2);
-                } else {
-                    long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-                    ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-                        messageCreateSpec.setContent("add a besoin d'un argument, pour plus d'information utilise !help add");
-                    }).subscribe();
-                }
-            }
-        }));
+    private static boolean verifPermissionSend(DiscordClient client, MessageCreateEvent event) {
+        long idGuild = event.getGuild().block().getId().asLong();
+        long idchannel = event.getMessage().getChannel().block().getId().asLong();
+        PermissionSet permission = client.getGuildById(Snowflake.of(idGuild)).block().getChannelById(Snowflake.of(idchannel)).block().getEffectivePermissions(client.getSelfId().get()).block();
+        if(!(permission.contains(Permission.SEND_MESSAGES))){
+            return true;
+        }
+        return false;
     }
 }
 

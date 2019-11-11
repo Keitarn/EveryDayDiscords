@@ -1,7 +1,10 @@
 import discord4j.core.DiscordClient;
 import discord4j.core.object.entity.Channel;
 import discord4j.core.object.entity.MessageChannel;
+import discord4j.core.object.util.Permission;
+import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
+import reactor.core.publisher.Mono;
 
 import java.io.*;
 import java.sql.ResultSet;
@@ -143,6 +146,10 @@ public class PostPhoto {
     public void postPhoto(DiscordClient client, long idchannel, long idGuild, long autorid,String autorName, String message) {
 
         requetes.addUserGuild(idGuild,autorid);
+        PermissionSet permission = client.getGuildById(Snowflake.of(idGuild)).block().getChannelById(Snowflake.of(idchannel)).block().getEffectivePermissions(client.getSelfId().get()).block();
+        if(!(permission.contains(Permission.ATTACH_FILES))){
+            return;
+        }
         if(!photo){
             ((MessageChannel) client.getChannelById(Snowflake.of(idchannel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("```diff\n- La commande n'a pu être éffectué, la commande d'envoie de photo est actuellement désactivé\n```");
@@ -162,8 +169,6 @@ public class PostPhoto {
                 Date dateNow = new Date();
                 long timeNow = dateNow.getTime();
                 time = (timeNow - time)/1000;
-
-
             }
         } catch (SQLException e) {
         }
@@ -195,7 +200,6 @@ public class PostPhoto {
                 messageCreateSpec.setContent("```diff\n- Erreur lors de l'envoie de la photo, le dossier d'image est vide, pensez a remettre de nouvelles images d'ici la prochaine demande ou image journalière\n```");
             }).subscribe();
         }
-
             envoiePhoto(client,idchannel,message, name);
             requetes.insertCoupleImageGuild(""+idGuild,name);
             requetes.insertReuqeteUser("!ask_lamas",autorid);

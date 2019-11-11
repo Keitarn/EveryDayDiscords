@@ -109,14 +109,14 @@ public class Requetes {
 
     }
 
-    public ResultSet recupClassement(String idGuild, String commande) {
-        String requete = "SELECT idUser,nombreAppel FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? ORDER BY nombreAppel DESC";
+    public ResultSet recupClassementAsk(String idGuild, String commande) {
+        String requete = "SELECT idUser,nombreAppel FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? ORDER BY nombreAppel DESC Limit 10";
         return connexion.executerPreparedSelect(requete,idGuild, commande);
 
     }
 
     public ResultSet getGuildChannel() {
-        String requete = "SELECT idGuild,idChanel FROM chanel";
+        String requete = "SELECT idChanel, idGuild FROM chanel WHERE abonne = 1";
         return connexion.executerPreparedSelect(requete);
     }
 }

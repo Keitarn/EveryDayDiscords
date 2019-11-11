@@ -14,9 +14,9 @@ public class Information {
     }
 
     public void classementAskFunction(DiscordClient client, long idChanel, long idGuild) {
-        ResultSet res = requetes.recupClassement(""+idGuild, "!ask_lamas");
+        ResultSet res = requetes.recupClassementAsk(""+idGuild, "!ask_lamas");
         int i = 1;
-        String message = "le classement est :\n";
+        String message = "top 10 pour ask :\n";
         while(true){
             try {
                 if (!res.next()) { break; }
