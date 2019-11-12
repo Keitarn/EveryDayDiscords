@@ -120,4 +120,10 @@ public class Requetes {
         String requete = "SELECT idChanel, idGuild FROM chanel WHERE abonne = 1";
         return connexion.executerPreparedSelect(requete);
     }
+
+    public ResultSet recupClassementAskGlobal(String s) {
+        String requete = "SELECT idUser, SUM(nombreAppel) FROM requeteuserserver GROUP BY idUser ORDER BY SUM(nombreAppel) DESC LIMIT 10"
+                ;
+        return connexion.executerRequete(requete);
+    }
 }

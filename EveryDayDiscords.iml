@@ -40,7 +40,8 @@
     <orderEntry type="library" name="Maven: com.discord4j:stores-jdk:3.0.9" level="project" />
     <orderEntry type="library" name="Maven: com.discord4j:stores-api:3.0.9" level="project" />
     <orderEntry type="library" name="Maven: com.austinv11.servicer:Servicer:1.0.0" level="project" />
-    <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.48" level="project" />
+    <orderEntry type="library" name="Maven: mysql:mysql-connector-java:8.0.18" level="project" />
+    <orderEntry type="library" name="Maven: com.google.protobuf:protobuf-java:3.6.1" level="project" />
     <orderEntry type="library" name="Maven: net.sourceforge.argparse4j:argparse4j:0.8.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-core:2.12.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.12.1" level="project" />

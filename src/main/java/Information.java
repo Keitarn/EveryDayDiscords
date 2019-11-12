@@ -16,16 +16,31 @@ public class Information {
         this.help = help;
     }
 
-    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild) {
-        ResultSet res = requetes.recupClassementAsk(""+idGuild, "!ask_lamas");
+    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild, boolean inters) {
+        ResultSet res= null;
         int i = 1;
-        String message = "top 10 pour ask :\n";
+        String message;
+        if(inters){
+            res = requetes.recupClassementAskGlobal("!ask_lamas");
+            message = "top 10 pour ask  interserveur :\n";
+        } else {
+            res = requetes.recupClassementAsk(""+idGuild, "!ask_lamas");
+            String name = client.getGuildById(Snowflake.of(idGuild)).block().getName();
+            message = "top 10 pour ask du serveur \""+name+"\" :\n";
+        }
+
         while(true){
             try {
                 if (!res.next()) { break; }
                 long idAutor = res.getLong("idUser");
-                String autorName = (client.getUserById(Snowflake.of(idAutor)).block().getUsername().toString());
-                message += i +") "+autorName +" avec "+ res.getInt("nombreAppel")+" demande(s) d'image\n";
+                String autorName = (client.getUserById(Snowflake.of(idAutor)).block().getUsername());
+                int nbAppel;
+                if(inters){
+                    nbAppel = res.getInt("sum(nombreAppel)");
+                }else {
+                    nbAppel = res.getInt("nombreAppel");
+                }
+                message += i +") "+autorName +" avec "+ nbAppel +" demande(s) d'image\n";
                 i++;
             } catch (SQLException e) {
                 break;
@@ -39,10 +54,18 @@ public class Information {
     }
 
     public void classement(DiscordClient client, MessageCreateEvent event, Namespace arg) {
+
         if(arg.getString("type").equals("photo")){
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
-            classementAskFunction(client, idChanel, idGuild);
+
+            if(arg.getBoolean("global")){
+                classementAskFunction(client, idChanel, idGuild, true);
+
+            }else {
+                classementAskFunction(client, idChanel, idGuild, false);
+            }
         }
+
     }
 }

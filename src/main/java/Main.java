@@ -7,7 +7,7 @@ import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
 import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.helper.HelpScreenException;
+import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -130,9 +130,11 @@ public class Main {
 
         ArgumentParser parserClassement = ArgumentParsers.newFor("!classement_lamas").build()
                         .description(":La commande !classement_lamas permet une de recevoir le classement demandé")
-                        .usage("\n!classement_lamas  --> donne le top 10 pour la demande d'image\n!classement_lamas -t {photo, test}  --> donne le top 10 pour l'objet demandé parmis ceux entre accolade");
+                        .usage("\n!classement_lamas  --> donne le top 10 pour la demande d'image\n!classement_lamas -t {photo, test}  --> donne le top 10 pour l'objet demandé parmis ceux entre accolade\n!classement_lamas -g --> donne le top 10 interserveur pour la demande d'image\n!classement_lamas -t {photo, test} -g --> donne le top 10 interserveur pour l'objet demandé parmis ceux entre accolade");
         parserClassement.addArgument("-t", "--type")
                 .choices("photo","test").setDefault("photo");
+        parserClassement.addArgument("-g", "--global").action(Arguments.storeConst()).setConst(true)
+                .setDefault(false);
 
         commands.put("!classement_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();

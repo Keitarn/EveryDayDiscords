@@ -23,7 +23,7 @@ public enum TypeDatabase {
     /**
      * Type MysQL pour les bases de données MySQL. (serveur)
      */
-    MySQL("com.mysql.jdbc.Driver","jdbc:mysql://"),
+    MySQL("com.mysql.cj.jdbc.Driver","jdbc:mysql://","?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"),
     /**
      * Type PostgreSQL pour les bases de données PostgreSQL. (serveur)
      */
