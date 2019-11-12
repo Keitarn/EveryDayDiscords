@@ -1,7 +1,10 @@
+import com.sun.org.apache.xml.internal.utils.NameSpace;
 import discord4j.core.DiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.util.Snowflake;
+import net.sourceforge.argparse4j.inf.Namespace;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -35,11 +38,8 @@ public class Information {
         }).subscribe();
     }
 
-    public void classement(DiscordClient client, MessageCreateEvent event, String arg) {
-        String[] argu = arg.split(" ");
-        if(argu[0].equals("")){
-            help.helpFunction(client,event.getMessage().getChannel().block().getId().asLong(),"classemenent_lamas");
-        } else if(argu[0].equals("photo")){
+    public void classement(DiscordClient client, MessageCreateEvent event, Namespace arg) {
+        if(arg.getString("type").equals("photo")){
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
             classementAskFunction(client, idChanel, idGuild);
