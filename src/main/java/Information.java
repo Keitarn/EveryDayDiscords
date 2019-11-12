@@ -23,8 +23,8 @@ public class Information {
         while(true){
             try {
                 if (!res.next()) { break; }
-                long idAutor = Long.parseLong(res.getString("idUser"));
-                String autorName = (client.getGuildById(Snowflake.of(idGuild))).block().getMemberById(Snowflake.of(idAutor)).block().getDisplayName().toString();
+                long idAutor = res.getLong("idUser");
+                String autorName = (client.getUserById(Snowflake.of(idAutor)).block().getUsername().toString());
                 message += i +") "+autorName +" avec "+ res.getInt("nombreAppel")+" demande(s) d'image\n";
                 i++;
             } catch (SQLException e) {

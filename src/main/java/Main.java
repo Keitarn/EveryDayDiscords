@@ -183,8 +183,8 @@ public class Main {
         final ResultSet res = requetes.getGuildChannel();
         try {
             while (res.next()) {
-                long chanel = Long.parseLong(res.getString("idChanel"));
-                long guild = Long.parseLong(res.getString("idGuild"));
+                long chanel = res.getLong("idChanel");
+                long guild = res.getLong("idGuild");
                 client.getChannelById(Snowflake.of(chanel)).doOnError(ch -> {
                     requetes.removeChanelDefault(chanel, guild);
                 }).subscribe();

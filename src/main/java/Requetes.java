@@ -75,6 +75,7 @@ public class Requetes {
         connexion.executerPreparedUpdate(requete,ch,gu);
     }
 
+
     public void insertCoupleImageGuild(String guild,String name) {
         String requete = "INSERT IGNORE INTO lie(IdGuild,nomImage) VALUES (?,?)";
         connexion.executerPreparedUpdate(requete,guild,name);
