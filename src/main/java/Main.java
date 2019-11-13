@@ -44,10 +44,10 @@ public class Main {
         client = new DiscordClientBuilder(properties.getToken_BOT()).build();
 
         ArgumentParser parserAsk = ArgumentParsers.newFor("!ask_lamas").build()
-                .usage("\n!ask_lamas  --> renvoie une photo\n!ask_lamas -t {photo, test}  --> renvoie l'objet demandé parmis ceux entre accolade");
+                .usage("\n!ask_lamas  --> renvoie un message ( par defaut avec une image)\nOptions possibles a rajouter :\n  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n\nExemple : !ask_lamas -t photo --> renvoie une image");
+
         parserAsk.addArgument("-t", "--type")
                 .choices("photo","test").setDefault("photo");
-
 
         commands.put("!ask_lamas", (event, arg) -> {
 
@@ -62,7 +62,7 @@ public class Main {
         });
 
         ArgumentParser parserDefault = ArgumentParsers.newFor("!default_lamas").build()
-                .usage("\n!default_lamas  --> abonne le canal a la photo journaliere\n!default_lamas -t {photo, test}  --> abonne le canal a la publication journaliere pour l'objet demandé parmis ceux entre accolade");
+                .usage("\n!default_lamas  --> abonne le canal pour un type de publication journalier ( par defaut les photos )\nOptions possible a rajouter :\n  -t {photo} --> recupere le type choisis parmis ceux entre accolade\nExemple : !default_lamas -t photo");
         parserDefault.addArgument("-t", "--type")
                 .choices("photo").setDefault("photo");
 
@@ -84,7 +84,7 @@ public class Main {
         });
 
         ArgumentParser parserUndefault = ArgumentParsers.newFor("!undefault_lamas").build()
-                .usage("\n!undefault_lamas  --> désabonne le canal a la photo journaliere\n!undefault_lamas -t {photo, test}  --> désabonne le canal a la publication journaliere pour l'objet demandé parmis ceux entre accolade");
+                .usage("\n!undefault_lamas  --> désabonne le canal pour un type de publication journalier ( par defaut les photos )\nOptions possible a rajouter :\n  -t {photo} --> recupere le type choisis parmis ceux entre accolade\nExemple : !undefault_lamas -t photo");
         parserUndefault.addArgument("-t", "--type")
                 .choices("photo").setDefault("photo");
 
@@ -110,16 +110,16 @@ public class Main {
 //        });
 
         ArgumentParser parserLoad = ArgumentParsers.newFor("!load_lamas").build()
-                .usage("\n!load_lamas  --> Met a jour toute les informations possibles en base de données ");
+                .usage("\n!load_lamas  --> Met a jour toute les informations possibles en base de données\n\nNécessite des droits administrateur");
 
         commands.put("!load_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
 
             if (MessagePrivée(event, chanel)) return null;
             if (verifPermissionSend(client, event)) return null;
-            if(verifAdmin(arg)) return null;
+            if(!verifAdmin(arg)) return null;
             Namespace res = null;
-            res = getNamespace(parserDefault, arg, chanel);
+            res = getNamespace(parserLoad, arg, chanel);
             if(res == null) return null;
             postPhoto.chargeFichier();
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
@@ -130,10 +130,14 @@ public class Main {
 
         ArgumentParser parserClassement = ArgumentParsers.newFor("!classement_lamas").build()
                         .description(":La commande !classement_lamas permet une de recevoir le classement demandé")
-                        .usage("\n!classement_lamas  --> donne le top 10 pour la demande d'image\n!classement_lamas -t {photo, test}  --> donne le top 10 pour l'objet demandé parmis ceux entre accolade\n!classement_lamas -g --> donne le top 10 interserveur pour la demande d'image\n!classement_lamas -t {photo, test} -g --> donne le top 10 interserveur pour l'objet demandé parmis ceux entre accolade");
+                        .usage("\n!classement_lamas --> renvoie un classement ( par defaut les photos )\n\nOptions possible a rajouter :\n  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n  -g --> permet d'obtenir le classement interveur\n  -p --> permet d'avoir sa position dans le classement\n\nExemple : !classement_lamas -t photo -g -p --> renvoie le classement perso interserveur pour les photos");
         parserClassement.addArgument("-t", "--type")
                 .choices("photo","test").setDefault("photo");
         parserClassement.addArgument("-g", "--global").action(Arguments.storeConst()).setConst(true)
+                .setDefault(false);
+        parserClassement.addArgument("-p", "--perso").action(Arguments.storeConst()).setConst(true)
+                .setDefault(false);
+        parserClassement.addArgument("-r", "--recu").action(Arguments.storeConst()).setConst(true)
                 .setDefault(false);
 
         commands.put("!classement_lamas", (event, arg) -> {

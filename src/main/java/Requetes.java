@@ -122,8 +122,28 @@ public class Requetes {
     }
 
     public ResultSet recupClassementAskGlobal(String s) {
-        String requete = "SELECT idUser, SUM(nombreAppel) FROM requeteuserserver GROUP BY idUser ORDER BY SUM(nombreAppel) DESC LIMIT 10"
-                ;
-        return connexion.executerRequete(requete);
+        String requete = "SELECT idUser, SUM(nombreAppel) FROM requeteuserserver WHERE typeRequete = ? GROUP BY idUser ORDER BY SUM(nombreAppel) DESC LIMIT 10";
+        return connexion.executerPreparedSelect(requete,s);
+    }
+
+    public ResultSet recupClassementAskGlobalPerso(String s, long iduser) {
+        String requete = "SELECT idUser, SUM(nombreAppel) FROM requeteuserserver WHERE typeRequete = ? AND idUser = ? GROUP BY idUser ORDER BY SUM(nombreAppel) DESC LIMIT 10";
+        return connexion.executerPreparedSelect(requete,s,""+iduser);
+    }
+
+    public ResultSet recupClassementAskPerso(long idGuild, String s, long iduser) {
+        String requete = "SELECT idUser,nombreAppel FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? AND idUser = ? ORDER BY nombreAppel DESC Limit 10";
+        return connexion.executerPreparedSelect(requete,""+idGuild, s,""+iduser);
+    }
+
+    public ResultSet recupClassementAskGlobalPersoCount(String s, int nbAppel) {
+        String requete = "SELECT SUM(resultat) as result FROM (SELECT COUNT(*) as resultat FROM requeteuserserver WHERE typeRequete = ? GROUP BY idUser HAVING SUM(nombreAppel) > ? )AS blabla";
+        return connexion.executerPreparedSelect(requete,s,""+nbAppel);
+    }
+
+
+    public ResultSet recupClassementAskPersoCount(long idGuild, String s, long iduser) {
+        String requete = "SELECT SUM(resultat) as result FROM (SELECT COUNT(*) as resultat FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? GROUP BY idUser HAVING SUM(nombreAppel) > ? )AS blabla";
+        return connexion.executerPreparedSelect(requete,""+idGuild, s,""+iduser);
     }
 }
