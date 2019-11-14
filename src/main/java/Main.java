@@ -137,6 +137,8 @@ public class Main {
                 .setDefault(false);
         parserClassement.addArgument("-p", "--perso").action(Arguments.storeConst()).setConst(true)
                 .setDefault(false);
+        parserClassement.addArgument("-c", "--cible").nargs(1)
+                .setDefault(false);
         parserClassement.addArgument("-r", "--recu").action(Arguments.storeConst()).setConst(true)
                 .setDefault(false);
 

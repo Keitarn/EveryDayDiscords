@@ -7,6 +7,7 @@
     <groupId>keitarn</groupId>
     <artifactId>EveryDayDiscords</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <build>
         <plugins>
             <plugin>
@@ -47,5 +48,5 @@
             <version>3.28.0</version>
         </dependency>
     </dependencies>
-    
+
 </project>
