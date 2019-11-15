@@ -13,10 +13,13 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import reactor.core.publisher.Mono;
 
-import java.io.*;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeSet;
 
 
 public class Main {
@@ -50,7 +53,7 @@ public class Main {
                         "\nExemple : !ask_lamas -t photo --> renvoie une image");
 
         parserAsk.addArgument("-t", "--type")
-                .choices("photo","test").setDefault("photo");
+                .choices("photo", "test").setDefault("photo");
 
         commands.put("!ask_lamas", (event, arg) -> {
 
@@ -59,7 +62,7 @@ public class Main {
             if (verifPermissionSend(client, event)) return null;
             Namespace res = null;
             res = getNamespace(parserAsk, arg, chanel);
-            if(res == null) return null;
+            if (res == null) return null;
             ask_lamas(client, event, res);
             return null;
         });
@@ -79,7 +82,7 @@ public class Main {
             if (verifPermissionSend(client, event)) return null;
             Namespace res = null;
             res = getNamespace(parserDefault, arg, chanel);
-            if(res == null) return null;
+            if (res == null) return null;
 
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été ajouté au serveur par défault s'il ne l'était pas déja");
@@ -103,7 +106,7 @@ public class Main {
             if (verifPermissionSend(client, event)) return null;
             Namespace res = null;
             res = getNamespace(parserUndefault, arg, chanel);
-            if(res == null) return null;
+            if (res == null) return null;
 
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ce chanel a été retiré des serveurs par défault s'il y était");
@@ -127,10 +130,10 @@ public class Main {
 
             if (MessagePrivée(event, chanel)) return null;
             if (verifPermissionSend(client, event)) return null;
-            if(!verifAdmin(arg)) return null;
+            if (!verifAdmin(event)) return null;
             Namespace res = null;
             res = getNamespace(parserLoad, arg, chanel);
-            if(res == null) return null;
+            if (res == null) return null;
             postPhoto.chargeFichier();
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Load effectué");
@@ -139,16 +142,16 @@ public class Main {
         });
 
         ArgumentParser parserClassement = ArgumentParsers.newFor("!classement_lamas").build()
-                        .description(":La commande !classement_lamas permet une de recevoir le classement demandé")
-                        .usage("\n!classement_lamas --> renvoie un classement ( par defaut les photos )\n\n" +
-                                "Options possible a rajouter :\n" +
-                                "  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n" +
-                                "  -g --> permet d'obtenir le classement interveur\n" +
-                                "  -p --> permet d'avoir sa position dans le classement\n" +
-                                "  -c @Personne --> permet d'avoir la position d'une personne dans le classement ( si -p et -c sont les deux present, -p sera choisit )" +
-                                "\nExemple : !classement_lamas -t photo -g -p --> renvoie le classement perso interserveur pour les photos");
+                .description(":La commande !classement_lamas permet une de recevoir le classement demandé")
+                .usage("\n!classement_lamas --> renvoie un classement ( par defaut les photos )\n\n" +
+                        "Options possible a rajouter :\n" +
+                        "  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n" +
+                        "  -g --> permet d'obtenir le classement interveur\n" +
+                        "  -p --> permet d'avoir sa position dans le classement\n" +
+                        "  -c @Personne --> permet d'avoir la position d'une personne dans le classement ( si -p et -c sont les deux present, -p sera choisit )" +
+                        "\nExemple : !classement_lamas -t photo -g -p --> renvoie le classement perso interserveur pour les photos");
         parserClassement.addArgument("-t", "--type")
-                .choices("photo","test").setDefault("photo");
+                .choices("photo", "test").setDefault("photo");
         parserClassement.addArgument("-g", "--global").action(Arguments.storeConst()).setConst(true)
                 .setDefault(false);
         parserClassement.addArgument("-p", "--perso").action(Arguments.storeConst()).setConst(true)
@@ -164,7 +167,7 @@ public class Main {
             if (verifPermissionSend(client, event)) return null;
             Namespace res = null;
             res = getNamespace(parserClassement, arg, chanel);
-            if(res == null) return null;
+            if (res == null) return null;
             info.classement(client, event, res);
             return null;
         });
@@ -175,8 +178,37 @@ public class Main {
         client.login().block();
     }
 
-    private static boolean verifAdmin(String[] arg) {
-        return true;
+    private static boolean verifAdmin(MessageCreateEvent event) {
+        final ResultSet res = requetes.droitAdmin(event.getMessage().getAuthor().get().getId().asLong());
+        boolean retour = false;
+        while (true) {
+            try {
+                if (!res.next()) break;
+            } catch (SQLException e) {
+                return false;
+            }
+            try {
+                long guild = res.getLong("idGuild");
+                System.out.println(guild);
+                if (guild == event.getGuildId().get().asLong() || guild == -1) {
+                    retour = true;
+                }
+            } catch (SQLException e) {
+                return false;
+            }
+        }
+        if(!retour) {
+            PermissionSet permission = event.getMessage().getAuthorAsMember().block().getBasePermissions().block();
+            if (permission.contains(Permission.MANAGE_GUILD)) {
+                retour = true;
+            }
+        }
+        if (!retour) {
+            ((MessageChannel) client.getChannelById(event.getMessage().getChannel().block().getId()).block()).createMessage(messageCreateSpec -> {
+                messageCreateSpec.setContent((("Des droits administrateurs sont nécéssaires")));
+            }).subscribe();
+        }
+        return retour;
     }
 
     private static Namespace getNamespace(ArgumentParser parserAsk, String[] arg, long chanel) {
@@ -186,8 +218,7 @@ public class Main {
         } catch (ArgumentParserException e) {
             String rep = e.getParser().formatUsage();
 
-
-        ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
+            ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent(((rep)));
             }).subscribe();
         }
@@ -195,7 +226,7 @@ public class Main {
     }
 
     private static void ask_lamas(DiscordClient client, MessageCreateEvent event, Namespace arg) {
-        if(arg.getString("type").equals("photo")){
+        if (arg.getString("type").equals("photo")) {
             long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
             String autor = event.getMessage().getAuthor().get().getUsername();
             long autorid = event.getMessage().getAuthor().get().getId().asLong();
@@ -203,6 +234,7 @@ public class Main {
             postPhoto.postPhoto(client, idChanel, idGuild, autorid, autor, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
         }
     }
+
     private static void verifChannelDelete() {
         final ResultSet res = requetes.getGuildChannel();
         try {
@@ -257,7 +289,7 @@ public class Main {
         long idGuild = event.getGuild().block().getId().asLong();
         long idchannel = event.getMessage().getChannel().block().getId().asLong();
         PermissionSet permission = client.getGuildById(Snowflake.of(idGuild)).block().getChannelById(Snowflake.of(idchannel)).block().getEffectivePermissions(client.getSelfId().get()).block();
-        if(!(permission.contains(Permission.SEND_MESSAGES))){
+        if (!(permission.contains(Permission.SEND_MESSAGES))) {
             return true;
         }
         return false;

@@ -1,3 +1,5 @@
+import discord4j.core.object.util.Snowflake;
+
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,8 +21,8 @@ public class Requetes {
     }
 
     public boolean addPhoto(String nameImage) {
-        String requete = "INSERT IGNORE INTO image VALUES (?)";
-        connexion.executerPreparedUpdate(requete, nameImage);
+        String requete = "INSERT IGNORE INTO image VALUES (?,?)";
+        connexion.executerPreparedUpdate(requete, nameImage,"");
         return false;
     }
 
@@ -110,7 +112,7 @@ public class Requetes {
 
     }
 
-    public ResultSet recupClassementAsk(String idGuild, String commande) {
+    public ResultSet recupClassementCommand(String idGuild, String commande) {
         String requete = "SELECT idUser,nombreAppel FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? ORDER BY nombreAppel DESC Limit 10";
         return connexion.executerPreparedSelect(requete,idGuild, commande);
 
@@ -121,29 +123,34 @@ public class Requetes {
         return connexion.executerPreparedSelect(requete);
     }
 
-    public ResultSet recupClassementAskGlobal(String s) {
+    public ResultSet recupClassementCommandGlobal(String s) {
         String requete = "SELECT idUser, SUM(nombreAppel) FROM requeteuserserver WHERE typeRequete = ? GROUP BY idUser ORDER BY SUM(nombreAppel) DESC LIMIT 10";
         return connexion.executerPreparedSelect(requete,s);
     }
 
-    public ResultSet recupClassementAskGlobalPerso(String s, long iduser) {
+    public ResultSet recupClassementCommandGlobalPerso(String s, long iduser) {
         String requete = "SELECT idUser, SUM(nombreAppel) FROM requeteuserserver WHERE typeRequete = ? AND idUser = ? GROUP BY idUser ORDER BY SUM(nombreAppel) DESC LIMIT 10";
         return connexion.executerPreparedSelect(requete,s,""+iduser);
     }
 
-    public ResultSet recupClassementAskPerso(long idGuild, String s, long iduser) {
+    public ResultSet recupClassementCommandPerso(long idGuild, String s, long iduser) {
         String requete = "SELECT idUser,nombreAppel FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? AND idUser = ? ORDER BY nombreAppel DESC Limit 10";
         return connexion.executerPreparedSelect(requete,""+idGuild, s,""+iduser);
     }
 
-    public ResultSet recupClassementAskGlobalPersoCount(String s, int nbAppel) {
+    public ResultSet recupClassementCommandGlobalPersoCount(String s, int nbAppel) {
         String requete = "SELECT SUM(resultat) as result FROM (SELECT COUNT(*) as resultat FROM requeteuserserver WHERE typeRequete = ? GROUP BY idUser HAVING SUM(nombreAppel) > ? )AS blabla";
         return connexion.executerPreparedSelect(requete,s,""+nbAppel);
     }
 
 
-    public ResultSet recupClassementAskPersoCount(long idGuild, String s, long iduser) {
+    public ResultSet recupClassementCommandPersoCount(long idGuild, String s, long iduser) {
         String requete = "SELECT SUM(resultat) as result FROM (SELECT COUNT(*) as resultat FROM requeteuserserver WHERE idGuild = ? AND typeRequete = ? GROUP BY idUser HAVING SUM(nombreAppel) > ? )AS blabla";
         return connexion.executerPreparedSelect(requete,""+idGuild, s,""+iduser);
+    }
+
+    public ResultSet droitAdmin(long id) {
+        String requete = "SELECT idAdmin,idGuild FROM administrateurs WHERE idAdmin = ?";
+        return connexion.executerPreparedSelect(requete,""+id);
     }
 }

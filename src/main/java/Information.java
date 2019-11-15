@@ -1,16 +1,13 @@
 import discord4j.core.DiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.MessageChannel;
-import discord4j.core.object.entity.User;
 import discord4j.core.object.util.Snowflake;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.SynchronousQueue;
 
 public class Information {
     private Requetes requetes;
@@ -21,17 +18,17 @@ public class Information {
         this.help = help;
     }
 
-    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild, boolean inters) {
+    public void classementAskFunction(DiscordClient client, long idChanel, long idGuild, boolean inters, String s) {
         ResultSet res = null;
         int i = 1;
         String message;
         if (inters) {
-            res = requetes.recupClassementAskGlobal("!ask_lamas");
-            message = "top 10 pour ask interserveur :\n";
+            res = requetes.recupClassementCommandGlobal(s);
+            message = "top 10 pour "+s+" interserveur :\n";
         } else {
-            res = requetes.recupClassementAsk("" + idGuild, "!ask_lamas");
+            res = requetes.recupClassementCommand("" + idGuild, s);
             String name = client.getGuildById(Snowflake.of(idGuild)).block().getName();
-            message = "top 10 pour ask du serveur \"" + name + "\" :\n";
+            message = "top 10 pour "+s+" du serveur \"" + name + "\" :\n";
         }
 
         while (true) {
@@ -61,7 +58,7 @@ public class Information {
             long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
             boolean global = arg.getBoolean("global");
             if (arg.getBoolean("perso")) {
-                classementAskFunctionPerso(client, idChanel, idGuild, event.getMessage().getAuthor().get().getId().asLong(), global);
+                classementCommandFunctionPerso(client, idChanel, idGuild, event.getMessage().getAuthor().get().getId().asLong(), global,"!ask_lamas");
             } else if (!(arg.getString("cible").equals(""))) {
                 Set<Snowflake> mentions = event.getMessage().getUserMentionIds();
                 if(mentions.size()>1){
@@ -73,29 +70,29 @@ public class Information {
                 }
                 Iterator<Snowflake> it = mentions.iterator();
                 Snowflake id = it.next();
-                classementAskFunctionPerso(client, idChanel, idGuild,id.asLong(), global);
+                classementCommandFunctionPerso(client, idChanel, idGuild,id.asLong(), global, "!ask_lamas");
             } else {
-                classementAskFunction(client, idChanel, idGuild, global);
+                classementAskFunction(client, idChanel, idGuild, global, "!ask_lamas");
             }
         }
 
     }
 
-    private void classementAskFunctionPerso(DiscordClient client, long idChanel, long idGuild, long idAuteur, boolean inters) {
+    private void classementCommandFunctionPerso(DiscordClient client, long idChanel, long idGuild, long idAuteur, boolean inters, String s) {
         ResultSet res = null;
         int i = 1;
-        String message;
+        String message = "Le classement ";
         int nbAppel = 0;
         if (inters) {
-            res = requetes.recupClassementAskGlobalPerso("!ask_lamas", idAuteur);
-            message = "Le classement interserveur de ";
+            res = requetes.recupClassementCommandGlobalPerso(s, idAuteur);
+            message += "interserveur de ";
         } else {
-            res = requetes.recupClassementAskPerso((idGuild), "!ask_lamas", idAuteur);
+            res = requetes.recupClassementCommandPerso((idGuild), s, idAuteur);
             String name = client.getGuildById(Snowflake.of(idGuild)).block().getName();
-            message = "Le classement sur le serveur \"" + name + "\" de ";
+            message += "sur le serveur \"" + name + "\" de ";
         }
         String autorName = (client.getUserById(Snowflake.of(idAuteur)).block().getUsername());
-        message+= autorName+" :\n";
+        message+= "la commande "+s+" de "+autorName+" :\n";
         try {
             if (res.next()) {
 
@@ -106,9 +103,9 @@ public class Information {
         }
 
         if (inters) {
-            res = requetes.recupClassementAskGlobalPersoCount("!ask_lamas", nbAppel);
+            res = requetes.recupClassementCommandGlobalPersoCount(s, nbAppel);
         } else {
-            res = requetes.recupClassementAskPersoCount((idGuild), "!ask_lamas", nbAppel);
+            res = requetes.recupClassementCommandPersoCount((idGuild), s, nbAppel);
         }
         int count = 1;
         try {
