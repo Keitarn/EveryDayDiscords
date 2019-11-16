@@ -13,7 +13,7 @@ public class Information {
     private Requetes requetes;
     private Aide help;
 
-    public Information(Requetes requetes, Aide help) {
+    public Information(Requetes requetes) {
         this.requetes = requetes;
         this.help = help;
     }

@@ -1,4 +1,6 @@
+import discord4j.core.object.entity.User;
 import discord4j.core.object.util.Snowflake;
+import reactor.core.publisher.Mono;
 
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -60,15 +62,15 @@ public class Requetes {
     }
 
     public void addChanelDefault(long chanel,long guild) {
-        updateChannelAbonne(chanel, guild,"true");
+        updateChannelAbonne(chanel, guild,true);
 
     }
 
     public void removeChanelDefault(long chanel,long guild) {
-        updateChannelAbonne(chanel, guild,"false");
+        updateChannelAbonne(chanel, guild,false);
     }
 
-    private void updateChannelAbonne(long chanel, long guild, String bool) {
+    private void updateChannelAbonne(long chanel, long guild, boolean bool) {
         String ch = chanel+"";
         String gu = guild+"";
         String requeteGuild = "INSERT IGNORE INTO guild VALUES (?)";
@@ -109,7 +111,6 @@ public class Requetes {
     public void incrementeRequete(String idGuild,String autorid,String commande) {
         String requete = "INSERT INTO requeteUserServer(idUser,idGuild,TypeRequete,nombreAppel) VALUES (?,?,?,1) ON DUPLICATE KEY UPDATE nombreAppel = nombreAppel+1 ";
         connexion.executerPreparedUpdate(requete,""+autorid,""+idGuild,commande);
-
     }
 
     public ResultSet recupClassementCommand(String idGuild, String commande) {
@@ -152,5 +153,15 @@ public class Requetes {
     public ResultSet droitAdmin(long id) {
         String requete = "SELECT idAdmin,idGuild FROM administrateurs WHERE idAdmin = ?";
         return connexion.executerPreparedSelect(requete,""+id);
+    }
+
+    public void addAdminServer(long idAuteur, String username, long idGuild) {
+        String requete = "INSERT IGNORE INTO administrateurs VALUES (?,?,?)";
+        connexion.executerPreparedUpdate(requete,""+idAuteur,username,""+idGuild);
+    }
+
+    public void ajoutAdminLamas(long idUser, String username, long idGuild) {
+        String requete = "INSERT IGNORE INTO administrateurs VALUES (?,?,?)";
+        connexion.executerPreparedUpdate(requete,""+idUser,username,""+idGuild);
     }
 }
