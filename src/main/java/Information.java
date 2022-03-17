@@ -1,8 +1,11 @@
 import discord4j.core.DiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.MessageChannel;
+import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.object.util.Snowflake;
 import net.sourceforge.argparse4j.inf.Namespace;
+import reactor.core.Disposable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,7 +42,7 @@ public class Information {
                 long idAutor = res.getLong("idUser");
                 String autorName = (client.getUserById(Snowflake.of(idAutor)).block().getUsername());
                 int nbAppel = recupNbAppel(inters, res);
-                message += i + ") " + autorName + " avec " + nbAppel + " demande(s) d'image\n";
+                message += i + ") " + autorName + " avec " + nbAppel + " demande(s) d'image(s)\n";
                 i++;
             } catch (SQLException e) {
                 break;
@@ -47,9 +50,10 @@ public class Information {
         }
         message += "fin du classement.";
         String MessageFinal = message;
-        ((MessageChannel) client.getChannelById(Snowflake.of(idChanel)).block()).createMessage(messageCreateSpec -> {
+        Message messageEmoji = ((MessageChannel) client.getChannelById(Snowflake.of(idChanel)).block()).createMessage(messageCreateSpec -> {
             messageCreateSpec.setContent(MessageFinal);
-        }).subscribe();
+        }).block();
+
     }
 
     public void classement(DiscordClient client, MessageCreateEvent event, Namespace arg) {

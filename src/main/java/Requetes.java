@@ -22,30 +22,20 @@ public class Requetes {
         this.connexion = connexion;
     }
 
-    public boolean addPhoto(String nameImage) {
+    public boolean addPhoto(String nameImage, String type) {
         String requete = "INSERT IGNORE INTO image VALUES (?,?)";
-        connexion.executerPreparedUpdate(requete, nameImage,"");
+        connexion.executerPreparedUpdate(requete, nameImage,type);
         return false;
     }
 
 
-    public ResultSet getphoto(String[] idGuildTableau) {
-
-        String requete = "SELECT nomImage FROM image WHERE nomImage NOT IN (SELECT lie.nomImage FROM lie where (lie.nomImage=image.nomImage";
-        for(int i = 0; i < idGuildTableau.length; i++){
-            if(i == 0){
-                requete+= " AND lie.idGuild = ?";
-            }else{
-                requete+= ") OR (lie.nomImage=image.nomImage AND lie.idGuild = ?";
-
-            }
-        }
-        requete+= ")) ORDER BY RAND () Limit 1";
-        return connexion.executerPreparedSelect(requete,idGuildTableau);
+    public ResultSet getphoto(String type) {
+        String requete = "SELECT nomImage FROM image WHERE typeDossier = ? ORDER BY RAND () Limit 1";
+        return connexion.executerPreparedSelect(requete, type);
     }
 
     public ResultSet getChannelJourna() {
-        String requete = "SELECT idChanel FROM chanel WHERE abonne = true";
+        String requete = "SELECT idChanel,type FROM chanel WHERE abonne = true";
         return connexion.executerRequete(requete);
     }
 
@@ -150,13 +140,28 @@ public class Requetes {
         return connexion.executerPreparedSelect(requete,""+idGuild, s,""+iduser);
     }
 
-    public ResultSet droitAdmin(long id) {
-        String requete = "SELECT idAdmin,idGuild FROM administrateurs WHERE idAdmin = ?";
-        return connexion.executerPreparedSelect(requete,""+id);
+    public ResultSet droitAdmin(long id, long idGuild) {
+        String requete = "SELECT COUNT(*) as result FROM administrateurs WHERE (idAdmin = ? AND idGuild = ?) OR (idAdmin = ? AND idGuild = -1)";
+        return connexion.executerPreparedSelect(requete,""+id, ""+idGuild, ""+id);
     }
 
     public void addAdminServer(long idAuteur, String username, long idGuild) {
         String requete = "INSERT IGNORE INTO administrateurs VALUES (?,?,?)";
+        connexion.executerPreparedUpdate(requete,""+idAuteur,username,""+idGuild);
+    }
+
+    public void addHelp(String command, String help) {
+        String requete = "INSERT IGNORE INTO aide(commande,aideCommande) VALUES (?,?)";
+        connexion.executerPreparedUpdate(requete,command,""+help);
+    }
+
+    public ResultSet getHelp(String command) {
+        String requete = "SELECT commande,aideCommande FROM aide WHERE commande = ?";
+        return connexion.executerPreparedSelect(requete,command);
+    }
+
+    public void deleteAdminServer(long idAuteur, String username, long idGuild) {
+        String requete = "DELETE FROM administrateurs WHERE idAuteur=? AND idGuild=?";
         connexion.executerPreparedUpdate(requete,""+idAuteur,username,""+idGuild);
     }
 

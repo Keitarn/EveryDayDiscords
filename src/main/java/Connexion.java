@@ -107,7 +107,7 @@ public class Connexion {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(Connexion.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        properties.setProperty("autoReconnect","true");
         try {
             connexion = DriverManager.getConnection(database,properties);
             statement = connexion.createStatement();

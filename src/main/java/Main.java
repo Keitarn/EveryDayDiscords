@@ -1,16 +1,19 @@
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.event.domain.channel.TextChannelDeleteEvent;
+import discord4j.core.event.domain.guild.GuildCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.MessageChannel;
 import discord4j.core.object.util.Permission;
 import discord4j.core.object.util.PermissionSet;
 import discord4j.core.object.util.Snowflake;
 import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.helper.HelpScreenException;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import net.sourceforge.argparse4j.internal.UnrecognizedArgumentException;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -23,6 +26,7 @@ public class Main {
     private static HashMap<String, TreeSet<String>> messages = new HashMap<String, TreeSet<String>>();
     private static String config = System.getProperty("user.dir") + "\\config";
     private static final Map<String, Command> commands = new HashMap<>();
+    private static final Map<String, Boolean> types = new HashMap<>();
     private static Properties properties;
     private static Connexion connexion = new Connexion();
     private static Requetes requetes;
@@ -31,6 +35,7 @@ public class Main {
     private static Information info;
     private static PostPhoto postPhoto;
     private static Ajout ajout;
+    private static Map<String, boolean[]> commandsPrivileges = new HashMap<String, boolean[]>();
 
     public static void main(String[] args) throws IOException {
         Loader loadSaver = new Loader(commands, messages, config);
@@ -39,43 +44,93 @@ public class Main {
         connexion.connecter(TypeDatabase.MySQL, properties.getPath_BDD() + "/" + properties.getNom_BDD(), properties.getLogin_BDD(), properties.getMdp_BDD().toCharArray());
         requetes = new Requetes(connexion);
 
-        postPhoto = new PostPhoto(commands, messages, properties, requetes);
         help = new Aide(requetes);
         info = new Information(requetes);
         ajout = new Ajout(properties, requetes);
         client = new DiscordClientBuilder(properties.getToken_BOT()).build();
 
-        ArgumentParser parserAsk = ArgumentParsers.newFor("!ask_lamas").build()
-                .usage("\n!ask_lamas  --> renvoie un message ( par defaut avec une image)\n\n" +
-                        "Options possibles a rajouter :\n" +
-                        "  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n" +
-                        "\nExemple : !ask_lamas -t photo --> renvoie une image");
+        types.put("photo",false);
+        types.put("anime",false);
+        postPhoto = new PostPhoto(commands, messages, properties, requetes, types);
+
+        boolean[] privilege = new boolean[2];
+        /*
+         *
+         * Commande : !ask_lamas
+         * Normal : true
+         * Admin : true
+         *
+         */
+
+        privilege[0] = true;
+        privilege[1] = true;
+        commandsPrivileges.put("ask_lamas", privilege);
+
+        ArgumentParser parserAsk = ArgumentParsers.newFor("!ask_lamas").build();
 
         parserAsk.addArgument("-t", "--type")
-                .choices("photo", "test").setDefault("photo");
+                .choices("photo","anime").setDefault("photo");
 
         commands.put("!ask_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, false, false)) return null;
-            Namespace res = getNamespace(parserAsk, arg, chanel);
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1],arg[0].replace("!",""))) return null;
+            Namespace res = getNamespace(parserAsk, arg);
             if (res == null) return null;
             ask_lamas(client, event, res);
             return null;
         });
 
-        ArgumentParser parserDefault = ArgumentParsers.newFor("!default_lamas").build()
-                .usage("\n!default_lamas  --> abonne le canal pour un type de publication journalier ( par defaut les photos )\n\n" +
-                        "Options possible a rajouter :\n" +
-                        "  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n" +
-                        "\nExemple : !default_lamas -t photo");
+
+
+        /*
+         *
+         * Commande : !add_photo
+         * Normal : true
+         * Admin : true
+         *
+         */
+        privilege[0] = true;
+        privilege[1] = true;
+        commandsPrivileges.put("add_photo", privilege);
+
+        ArgumentParser parserAddPhoto = ArgumentParsers.newFor("!ask_lamas").build();
+
+        parserAddPhoto.addArgument("-t", "--type")
+                .choices("photo", "anime").setDefault("photo");
+
+
+        commands.put("!add_photo", (event, arg) -> {
+            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            if (!MessagePrivée(event, chanel,arg[0].replace("!",""))) return null;
+            Namespace res = getNamespace(parserAddPhoto, arg);
+            if (res == null) return null;
+            postPhoto.addPhoto(client, event, res);
+            return null;
+        });
+
+        /*
+         *
+         * Commande : !default_lamas
+         * Normal : false
+         * Admin : true
+         *
+         */
+
+        privilege = new boolean[2];
+        privilege[0] = false;
+        privilege[1] = true;
+        commandsPrivileges.put("default_lamas", privilege);
+
+        ArgumentParser parserDefault = ArgumentParsers.newFor("!default_lamas").build();
+
         parserDefault.addArgument("-t", "--type")
                 .choices("photo").setDefault("photo");
 
         commands.put("!default_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, true, false)) return null;
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1],arg[0].replace("!",""))) return null;
 
-            Namespace res = getNamespace(parserDefault, arg, chanel);
+            Namespace res = getNamespace(parserDefault, arg);
             if (res == null) return null;
 
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
@@ -86,18 +141,28 @@ public class Main {
             return null;
         });
 
-        ArgumentParser parserUndefault = ArgumentParsers.newFor("!undefault_lamas").build()
-                .usage("\n!undefault_lamas  --> désabonne le canal pour un type de publication journalier ( par defaut les photos )\n\n" +
-                        "Options possible a rajouter :\n" +
-                        "  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n" +
-                        "\nExemple : !undefault_lamas -t photo");
+        /*
+         *
+         * Commande : !undefault_lamas
+         * Normal : false
+         * Admin : true
+         *
+         */
+
+        privilege = new boolean[2];
+        privilege[0] = false;
+        privilege[1] = true;
+        commandsPrivileges.put("undefault_lamas", privilege);
+
+        ArgumentParser parserUndefault = ArgumentParsers.newFor("!undefault_lamas").build();
         parserUndefault.addArgument("-t", "--type")
                 .choices("photo").setDefault("photo");
 
         commands.put("!undefault_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, true, false)) return null;
-            Namespace res = getNamespace(parserUndefault, arg, chanel);
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1],arg[0].replace("!",""))) return null;
+
+            Namespace res = getNamespace(parserUndefault, arg);
             if (res == null) return null;
 
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
@@ -108,10 +173,58 @@ public class Main {
             return null;
         });
 
-//        commands.put("!help", (event,arg) -> {
-//            help.helpFunction(client, event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong(), arg);
-//            return null;
-//        });
+
+        /*
+         *
+         * Commande : !help
+         * Normal : true
+         * Admin : true
+         *
+         */
+        privilege = new boolean[2];
+        privilege[0] = true;
+        privilege[1] = true;
+        commandsPrivileges.put("help", privilege);
+
+        commands.put("!help", (event, arg) -> {
+            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1], arg[0].replace("!", ""))) return null;
+            help.helpFunction(client, event, arg, false);
+            return null;
+        });
+
+
+        /*
+         *
+         * Commande : !addHelp
+         * Normal : false
+         * Admin : false
+         *
+         */
+        privilege = new boolean[2];
+        privilege[0] = false;
+        privilege[1] = false;
+        commandsPrivileges.put("add_help", privilege);
+
+        commands.put("!add_help", (event, arg) -> {
+            long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1], arg[0].replace("!", ""))) return null;
+            help.addHelp(client, event, arg);
+            return null;
+        });
+
+
+        /*
+         *
+         * Commande : !load_lamas
+         * Normal : false
+         * Admin : false
+         *
+         */
+        privilege = new boolean[2];
+        privilege[0] = false;
+        privilege[1] = false;
+        commandsPrivileges.put("load_lamas", privilege);
 
         ArgumentParser parserLoad = ArgumentParsers.newFor("!load_lamas").build()
                 .usage("\n!load_lamas  --> Met a jour toute les informations possibles en base de données\n\n" +
@@ -119,8 +232,8 @@ public class Main {
 
         commands.put("!load_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, true, true)) return null;
-            Namespace res = getNamespace(parserLoad, arg, chanel);
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1], arg[0].replace("!", ""))) return null;
+            Namespace res = getNamespace(parserLoad, arg);
             if (res == null) return null;
             postPhoto.chargeFichier();
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
@@ -129,12 +242,25 @@ public class Main {
             return null;
         });
 
+
+        /*
+         *
+         * Commande : !classement_lamas
+         * Normal : true
+         * Admin : true
+         *
+         */
+        privilege = new boolean[2];
+        privilege[0] = true;
+        privilege[1] = true;
+        commandsPrivileges.put("classement_lamas", privilege);
+
         ArgumentParser parserClassement = ArgumentParsers.newFor("!classement_lamas").build()
                 .description(":La commande !classement_lamas permet une de recevoir le classement demandé")
                 .usage("\n!classement_lamas --> renvoie un classement ( par defaut les photos )\n\n" +
                         "Options possible a rajouter :\n" +
                         "  -t {photo} --> recupere le type choisis parmis ceux entre accolade\n" +
-                        "  -g --> permet d'obtenir le classement interveur\n" +
+                        "  -g --> permet d'obtenir le classement interserveur\n" +
                         "  -p --> permet d'avoir sa position dans le classement\n" +
                         "  -c @Personne --> permet d'avoir la position d'une personne dans le classement ( si -p et -c sont les deux present, -p sera choisit )" +
                         "\nExemple : !classement_lamas -t photo -g -p --> renvoie le classement perso interserveur pour les photos");
@@ -150,34 +276,63 @@ public class Main {
         parserClassement.addArgument("-r", "--recu").action(Arguments.storeConst()).setConst(true)
                 .setDefault(false);
 
+
+
         commands.put("!classement_lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, false, false)) return null;
-            Namespace res = getNamespace(parserClassement, arg, chanel);
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1], arg[0].replace("!", ""))) return null;
+            Namespace res = getNamespace(parserClassement, arg);
             if (res == null) return null;
             info.classement(client, event, res);
             return null;
         });
 
+
+        /*
+         *
+         * Commande : !lamas
+         * Normal : false
+         * Admin : false
+         *
+         */
+        privilege = new boolean[2];
+        privilege[0] = false;
+        privilege[1] = false;
+        commandsPrivileges.put("lamas", privilege);
         ArgumentParser parserLamas = ArgumentParsers.newFor("!lamas").build()
                 .usage("\n!lamas -c @personne --> permet d'ajouter des admin interserveur\n\n" +
                         "Nécessite des droits administrateur interserveur");
+
         parserLamas.addArgument("-c", "--cible").nargs("?")
                 .setConst("")
                 .setDefault("");
+
         commands.put("!lamas", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, true, true)) return null;
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1], arg[0].replace("!", ""))) return null;
             Namespace res = null;
-            res = getNamespace(parserLamas, arg, chanel);
+            res = getNamespace(parserLamas, arg);
             if (res == null) return null;
 
-            ajout.ajoutLamasAdmin(client,event,true);
+            ajout.ajoutLamasAdmin(client, event, true);
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ajout en admin interserveur réalisé");
             }).subscribe();
             return null;
         });
+
+
+        /*
+         *
+         * Commande : !admin
+         * Normal : false
+         * Admin : true
+         *
+         */
+        privilege = new boolean[2];
+        privilege[0] = false;
+        privilege[1] = true;
+        commandsPrivileges.put("admin", privilege);
 
         ArgumentParser parserAdmin = ArgumentParsers.newFor("!admin").build()
                 .usage("\n!admin -c @personne --> permet d'ajouter des admin serveur\n\n" +
@@ -187,88 +342,89 @@ public class Main {
                 .setDefault("");
         commands.put("!admin", (event, arg) -> {
             long chanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            if (verifMauvaise(event, chanel, true, false)) return null;
+            if (verifMauvaise(event, chanel, commandsPrivileges.get(arg[0].replace("!",""))[0],  commandsPrivileges.get(arg[0].replace("!",""))[1], arg[0].replace("!", ""))) return null;
             Namespace res = null;
-            res = getNamespace(parserAdmin, arg, chanel);
+            res = getNamespace(parserAdmin, arg);
             if (res == null) return null;
 
-            ajout.ajoutLamasAdmin(client,event,false);
+            ajout.ajoutLamasAdmin(client, event, false);
             ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
                 messageCreateSpec.setContent("Ajout en admin serveur réalisé");
             }).subscribe();
             return null;
         });
+
+        help.setCommands(commands);
+        help.setPrivilege(commandsPrivileges);
+
         verifChannelDelete();
         postPhoto.lanceTache(client);
         dispatcher(client);
         client.login().block();
     }
 
-    private static boolean verifMauvaise(MessageCreateEvent event, long chanel, boolean admin, boolean niveauAdmin) {
-        if (MessagePrivée(event, chanel)) return true;
+    private static boolean verifMauvaise(MessageCreateEvent event, long chanel, boolean normal, boolean admin, String commandName) {
+        if (MessagePrivée(event, chanel,commandName)) return true;
         if (verifPermissionSend(client, event)) return true;
-        if (admin) {
-            if (verifAdmin(event, niveauAdmin)) return true;
+        if (normal) {
+            return false;
+        }else if (admin){
+            return !verifAdmin(event, false);
+        }else{
+            return !verifAdmin(event, true);
         }
-        return false;
     }
-
 
 
     private static boolean verifAdmin(MessageCreateEvent event, boolean lamas) {
-        final ResultSet res = requetes.droitAdmin(event.getMessage().getAuthor().get().getId().asLong());
-        while (true) {
-            try {
-                if (!res.next()) break;
-            } catch (SQLException e) {
-                return true;
-            }
-            try {
-                long guild = res.getLong("idGuild");
-                if ((guild == event.getGuildId().get().asLong() && !lamas) || guild == -1) {
-                    return false;
-                }
-            } catch (SQLException e) {
-                return true;
-            }
+        long authorID = event.getMessage().getAuthor().get().getId().asLong();
+        long idGuild;
+        if (!lamas) {
+            idGuild = event.getGuildId().get().asLong();
+        } else {
+            idGuild = -1;
         }
-        PermissionSet permission = event.getMessage().getAuthorAsMember().block().getBasePermissions().block();
-        if (permission.contains(Permission.MANAGE_GUILD) && !lamas) {
-            String text = "Tu as été ajouté au admin du serveur " + event.getMessage().getGuild().block().getName();
-            ((MessageChannel) client.getChannelById(event.getMessage().getAuthor().get().getPrivateChannel().block().getId()).block()).createMessage(messageCreateSpec -> {
-                messageCreateSpec.setContent(text);
-            }).subscribe();
-            requetes.addAdminServer(event.getMessage().getAuthor().get().getId().asLong(), event.getMessage().getAuthor().get().getUsername(), event.getMessage().getGuild().block().getId().asLong());
+        final ResultSet res = requetes.droitAdmin(authorID, idGuild);
+        int result = -1;
+        try {
+            while (res.next()) {
+                result = res.getInt("result");
+            }
+        } catch (SQLException e) {
             return false;
         }
+
+        if (result > 0) {
+            return true;
+        }
+
         ((MessageChannel) client.getChannelById(event.getMessage().getChannel().block().getId()).block()).createMessage(messageCreateSpec -> {
-            messageCreateSpec.setContent((("Vous ne posséder pas des droits suffisant pour éffectuer cette action")));
+            messageCreateSpec.setContent((("Vous ne possédez pas des droits suffisants pour éffectuer cette action")));
         }).subscribe();
-        return true;
+        return false;
     }
 
-    private static Namespace getNamespace(ArgumentParser parserAsk, String[] arg, long chanel) {
+    private static Namespace getNamespace(ArgumentParser parserAsk, String[] arg) {
         Namespace res = null;
         try {
             res = parserAsk.parseArgs(Arrays.copyOfRange(arg, 1, arg.length));
-        } catch (ArgumentParserException e) {
-            String rep = e.getParser().formatUsage();
+        } catch (UnrecognizedArgumentException e) {
+            System.out.print(e);
+        } catch (HelpScreenException e) {
 
-            ((MessageChannel) client.getChannelById(Snowflake.of(chanel)).block()).createMessage(messageCreateSpec -> {
-                messageCreateSpec.setContent(((rep)));
-            }).subscribe();
+        } catch (ArgumentParserException e) {
+
         }
         return res;
     }
 
     private static void ask_lamas(DiscordClient client, MessageCreateEvent event, Namespace arg) {
-        if (arg.getString("type").equals("photo")) {
-            long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
-            String autor = event.getMessage().getAuthor().get().getUsername();
-            long autorid = event.getMessage().getAuthor().get().getId().asLong();
-            long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
-            postPhoto.postPhoto(client, idChanel, idGuild, autorid, autor, "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
-        }
+        long idChanel = event.getMessage().getChannel().map(ch -> ch.getId()).block().asLong();
+
+        String autor = event.getMessage().getAuthor().get().getUsername();
+        long autorid = event.getMessage().getAuthor().get().getId().asLong();
+        long idGuild = event.getMessage().getGuild().map(gu -> gu.getId()).block().asLong();
+        postPhoto.postPhoto(client, idChanel, idGuild, autorid, autor,arg.getString("type"), "Voila une photo pour toi " + autor + ", j'espere qu'elle te plaira !");
     }
 
     private static void verifChannelDelete() {
@@ -294,10 +450,10 @@ public class Main {
         }).subscribe();
     }
 
-    private static boolean MessagePrivée(MessageCreateEvent event, long idChanel) {
-        if (!event.getMessage().getGuild().hasElement().block()) {
+    private static boolean MessagePrivée(MessageCreateEvent event, long idChanel, String param) {
+        if (!event.getMessage().getGuild().hasElement().block() && !param.equals("add_photo")) {
             ((MessageChannel) client.getChannelById(Snowflake.of(idChanel)).block()).createMessage(messageCreateSpec -> {
-                messageCreateSpec.setContent("Il est interdit de faire des demandes au bot, si tu continues tu seras blacklisté");
+                messageCreateSpec.setContent("La seul commande autorisé en message privé est \"!add_photo\"");
             }).subscribe();
             return true;
         }
@@ -313,18 +469,41 @@ public class Main {
                     commands.get(argsCommand[0]).execute(event, argsCommand);
                     return Mono.empty().then();
                 })).subscribe();
-    }
+        client.getEventDispatcher().on(GuildCreateEvent.class).subscribe(event -> {
+            long owner = event.getGuild().getOwnerId().asLong();
+            String pseudo = event.getGuild().getOwner().block().getUsername();
+            long guildId = event.getGuild().getId().asLong();
+            ResultSet result = requetes.droitAdmin(owner, guildId);
+            try {
+                while ( result.next() )
+                {
+                    if (result.getInt("result") == 0) {
+                        requetes.addAdminServer(owner, pseudo, guildId);
 
-    private static boolean verifPermissionSend(DiscordClient client, MessageCreateEvent event) {
-        long idGuild = event.getGuild().block().getId().asLong();
-        long idchannel = event.getMessage().getChannel().block().getId().asLong();
-        PermissionSet permission = client.getGuildById(Snowflake.of(idGuild)).block().getChannelById(Snowflake.of(idchannel)).block().getEffectivePermissions(client.getSelfId().get()).block();
-        if (!(permission.contains(Permission.SEND_MESSAGES))) {
-            return true;
+                        String text = "Tu as été ajouté au admin du serveur " + event.getGuild().getName()+"\n utilise !help dans un canal pour connaitre les différentes commandes";
+                        ((MessageChannel) client.getChannelById(event.getGuild().getOwner().block().getPrivateChannel().block().getId()).block()).createMessage(messageCreateSpec -> {
+                            messageCreateSpec.setContent(text);
+                        }).subscribe();
+                    }
+
+                }
+
+            }catch(SQLException e){
+                    e.printStackTrace();
+                }
+            });
         }
-        return false;
+
+        private static boolean verifPermissionSend (DiscordClient client, MessageCreateEvent event){
+            long idGuild = event.getGuild().block().getId().asLong();
+            long idchannel = event.getMessage().getChannel().block().getId().asLong();
+            PermissionSet permission = client.getGuildById(Snowflake.of(idGuild)).block().getChannelById(Snowflake.of(idchannel)).block().getEffectivePermissions(client.getSelfId().get()).block();
+            if (!(permission.contains(Permission.SEND_MESSAGES))) {
+                return true;
+            }
+            return false;
+        }
     }
-}
 
 
 
