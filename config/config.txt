@@ -1,6 +1,0 @@
-Path_Image: ""
-BDD_path: 
-BDD_nom: 
-BDD_login: 
-BDD_mdp: 
-Discord : 
